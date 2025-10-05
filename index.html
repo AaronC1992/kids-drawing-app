@@ -1,0 +1,335 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">       
+    <title>Kids Drawing App By AaronC</title>
+    
+    <!-- PWA Meta Tags -->
+    <meta name="description" content="A fun drawing and coloring app for kids with special effects, stickers, and coloring books">
+    <meta name="theme-color" content="#FF69B4">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Drawing App">
+    
+    <!-- PWA Manifest -->
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons for iOS -->
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+    <link rel="icon" type="image/png" sizes="512x512" href="icon-512.png">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <div class="canvas-container">
+            <div class="toolbar">
+            <!-- Brushes & Effects Category -->
+            <div class="tool-category">
+                <div class="category-header" onclick="toggleCategory('brushes-effects')">
+                    <h4>🎨 Brushes & Effects</h4>
+                    <span class="category-arrow">▶</span>
+                </div>
+                <div class="category-content" id="brushes-effects">
+                    <!-- Basic Brushes -->
+                    <button class="tool-btn active" data-tool="brush">🖌️ Brush</button>
+                    <button class="tool-btn" data-tool="wobbly-crayon">🖍️ Wobbly Crayon</button>
+                    <button class="tool-btn" data-tool="smudge">🎨 Fade Brush</button>
+                    <button class="tool-btn" data-tool="blend">🌀 Blend Brush</button>
+                    <button class="tool-btn" data-tool="spray">💨 Spray</button>
+                    
+                    <!-- Special Effects -->
+                    <button class="tool-btn" data-tool="glitter">✨ Glitter</button>
+                    <button class="tool-btn" data-tool="neon">💡 Neon</button>
+                    <button class="tool-btn" data-tool="bubble">� Balloons</button>
+                    <button class="tool-btn" data-tool="fireworks">� Fireworks</button>
+                    <button class="tool-btn" data-tool="streamers">🎗️ Streamers</button>
+                    <button class="tool-btn" data-tool="confetti">🎊 Confetti</button>
+                    <button class="tool-btn" data-tool="sparkles">🐛 Colorful Worms</button>
+                    <button class="tool-btn" data-tool="lightning">⚡ Lightning</button>
+                    <button class="tool-btn" data-tool="bugs">🐞 Bugs</button>
+                    
+                    <!-- Nature & Special Brushes -->
+                    <button class="tool-btn" data-tool="train-track">🚂 Train Track</button>
+                    <button class="tool-btn" data-tool="leaf-trail">🍃 Leaf Trail</button>
+                    <button class="tool-btn" data-tool="flower-chain">� Flower Chain</button>
+                    <button class="tool-btn" data-tool="grass-stamper">� Grass Stamper</button>
+                    <button class="tool-btn" data-tool="blocky-builder">🧱 Blocky Builder</button>
+                    <button class="tool-btn" data-tool="mirror-painting">🪞 Mirror Painting</button>
+                    
+                    <!-- Utility Tools -->
+                    <button class="tool-btn" data-tool="fill">🪣 Fill</button>
+                    <button class="tool-btn" data-tool="eraser">🧽 Eraser</button>
+                </div>
+            </div>
+
+            <!-- Stickers Section -->
+            <div class="tool-category">
+                <div class="category-header" onclick="toggleCategory('tools')">
+                    <h4>🎨 Tools</h4>
+                    <span class="category-arrow">▶</span>
+                </div>
+                <div class="category-content" id="tools">
+                    <button class="tool-btn" id="stickerTool">🌟 Stickers</button>
+                    <button class="tool-btn" id="coloringBooksBtn">📖 Coloring Books</button>
+                </div>
+            </div>
+
+            <!-- Actions Category -->
+            <div class="tool-category">
+                <div class="category-header" onclick="toggleCategory('actions')">
+                    <h4>⚡ Actions</h4>
+                    <span class="category-arrow">▶</span>
+                </div>
+                <div class="category-content" id="actions">
+                    <button class="tool-btn" id="undoBtn">↶ Undo</button>
+                    <button class="tool-btn" id="clearBtn">🗑️ Clear</button>
+                    <button class="tool-btn" id="saveBtn">💾 Save</button>
+                </div>
+            </div>
+
+            <!-- Colors Dropdown -->
+            <div class="tool-category">
+                <div class="category-header" onclick="toggleCategory('colors')">
+                    <h4>🎨 Colors</h4>
+                    <span class="category-arrow">▶</span>
+                </div>
+                <div class="category-content" id="colors">
+                    <div class="color-palette">
+                        <div class="color-btn active" style="background-color: #000000" data-color="#000000"></div>
+                        <div class="color-btn" style="background-color: #FF0000" data-color="#FF0000"></div>
+                        <div class="color-btn" style="background-color: #00FF00" data-color="#00FF00"></div>
+                        <div class="color-btn" style="background-color: #0000FF" data-color="#0000FF"></div>
+                        <div class="color-btn" style="background-color: #FFFF00" data-color="#FFFF00"></div>
+                        <div class="color-btn" style="background-color: #FF00FF" data-color="#FF00FF"></div>
+                        <div class="color-btn" style="background-color: #00FFFF" data-color="#00FFFF"></div>
+                        <div class="color-btn" style="background-color: #FFA500" data-color="#FFA500"></div>
+                        <div class="color-btn" style="background-color: #800080" data-color="#800080"></div>
+                        <div class="color-btn" style="background-color: #FFC0CB" data-color="#FFC0CB"></div>
+                        <div class="color-btn rainbow-color" data-color="rainbow">🌈 Rainbow</div>
+                    </div>
+                    <div class="color-picker-section">
+                        <label for="colorPicker" class="color-wheel-btn" id="colorWheelBtn">🎨 More Colors</label>
+                        <input type="color" id="colorPicker" class="hidden-color-input" value="#000000">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Brush Size Inline -->
+            <div class="brush-inline">
+                <span class="brush-label">📏 Size</span>
+                <input type="range" id="brushSize" min="1" max="50" value="5">
+                <span id="brushSizeValue">5</span>
+            </div>
+
+            <!-- Zoom Controls in Toolbar -->
+            <div class="toolbar-zoom-controls">
+                <span class="zoom-label">🔍 Zoom</span>
+                <button class="zoom-btn" id="toolbarZoomOut">-</button>
+                <button class="zoom-btn" id="toolbarZoomIn">+</button>
+            </div>
+
+            <!-- Train Track Decorations Dropdown (shows when train-track is selected) -->
+            <div class="train-decorations-menu" id="trainDecorationsMenu" style="display: none;">
+                <span class="decoration-label">🚂 Decoration:</span>
+                <select id="decorationSelect" class="decoration-dropdown">
+                    <option value="">✏️ Draw Track</option>
+                    <option value="station">🚉 Station</option>
+                    <option value="tunnel">🌑 Tunnel</option>
+                    <option value="tree">🌳 Tree</option>
+                    <option value="building">🏢 Building</option>
+                </select>
+            </div>
+
+            </div> <!-- end toolbar -->
+
+            <canvas id="drawingCanvas"></canvas>
+
+            <!-- Sticker Panel -->
+            <div class="sticker-panel" id="stickerPanel">
+                <button class="panel-close" id="closeStickerPanel">✕</button>
+                <h3> Choose a Sticker!</h3>
+
+                <div class="sticker-category">
+                    <h4>😊 Faces</h4>
+                    <div class="sticker">😊</div>
+                    <div class="sticker">😂</div>
+                    <div class="sticker">🥰</div>
+                    <div class="sticker">😍</div>
+                    <div class="sticker">🤗</div>
+                    <div class="sticker">😎</div>
+                    <div class="sticker">🤩</div>
+                    <div class="sticker">😋</div>
+                    <div class="sticker">🤔</div>
+                    <div class="sticker">😴</div>
+                </div>
+
+                <div class="sticker-category">
+                    <h4>⭐ Stars & Magic</h4>
+                    <div class="sticker">⭐</div>
+                    <div class="sticker">🌟</div>
+                    <div class="sticker">✨</div>
+                    <div class="sticker">💫</div>
+                    <div class="sticker">🔮</div>
+                    <div class="sticker">🪄</div>
+                    <div class="sticker">🌙</div>
+                    <div class="sticker">☀️</div>
+                    <div class="sticker">🌈</div>
+                    <div class="sticker">⚡</div>
+                </div>
+
+                <div class="sticker-category">
+                    <h4>💖 Hearts & Love</h4>
+                    <div class="sticker">💖</div>
+                    <div class="sticker">💕</div>
+                    <div class="sticker">💗</div>
+                    <div class="sticker">💘</div>
+                    <div class="sticker">💝</div>
+                    <div class="sticker">💞</div>
+                    <div class="sticker">💓</div>
+                    <div class="sticker">❤️</div>
+                    <div class="sticker">🧡</div>
+                    <div class="sticker">💛</div>
+                </div>
+
+                <div class="sticker-category">
+                    <h4>🐱 Animals</h4>
+                    <div class="sticker">🐱</div>
+                    <div class="sticker">🐶</div>
+                    <div class="sticker">🐭</div>
+                    <div class="sticker">🐹</div>
+                    <div class="sticker">🐰</div>
+                    <div class="sticker">🦊</div>
+                    <div class="sticker">🐻</div>
+                    <div class="sticker">🐼</div>
+                    <div class="sticker">🐨</div>
+                    <div class="sticker">🐯</div>
+                    <div class="sticker">🦁</div>
+                    <div class="sticker">🐸</div>
+                    <div class="sticker">🐵</div>
+                    <div class="sticker">🐧</div>
+                    <div class="sticker">🦆</div>
+                    <div class="sticker">🐝</div>
+                </div>
+
+                <div class="sticker-category">
+                    <h4>🌸 Flowers & Nature</h4>
+                    <div class="sticker">🌸</div>
+                    <div class="sticker">🌺</div>
+                    <div class="sticker">🌻</div>
+                    <div class="sticker">🌹</div>
+                    <div class="sticker">🌷</div>
+                    <div class="sticker">🌿</div>
+                    <div class="sticker">🍀</div>
+                    <div class="sticker">🌱</div>
+                    <div class="sticker">🌳</div>
+                    <div class="sticker">🌴</div>
+                    <div class="sticker">🦋</div>
+                    <div class="sticker">🐛</div>
+                </div>
+
+                <div class="sticker-category">
+                    <h4>🍕 Food & Treats</h4>
+                    <div class="sticker">🍕</div>
+                    <div class="sticker">🍔</div>
+                    <div class="sticker">🍟</div>
+                    <div class="sticker">🌭</div>
+                    <div class="sticker">🍰</div>
+                    <div class="sticker">🎂</div>
+                    <div class="sticker">🧁</div>
+                    <div class="sticker">🍭</div>
+                </div>
+
+                <div class="sticker-category">
+                    <h4>🎉 Party & Fun</h4>
+                    <div class="sticker">🎉</div>
+                    <div class="sticker">🎊</div>
+                    <div class="sticker">🎈</div>
+                    <div class="sticker">🎁</div>
+                </div>
+            </div>
+
+            <!-- Coloring Books Modal -->
+            <div class="coloring-books-modal" id="coloringBooksModal">
+                <div class="modal-content">
+                    <button class="modal-close" id="closeColoringBooksModal">✕</button>
+                    <h3>📖 Choose a Coloring Book</h3>
+                    
+                    <!-- File input for local PDFs -->
+                    <div style="margin-bottom: 20px; text-align: center;">
+                        <p style="color: #666; margin-bottom: 15px; font-family: 'Comic Sans MS', cursive;">
+                            Select any PDF coloring book from your computer!
+                        </p>
+                        <label for="pdfFileInput" class="pdf-upload-btn">
+                            📁 Choose PDF File
+                        </label>
+                        <input type="file" id="pdfFileInput" accept=".pdf" style="display: none;">
+                    </div>
+                    
+                    <div class="sample-pdfs">
+                        <p style="color: #666; font-size: 14px; text-align: center; margin: 10px 0;">
+                            Try our sample coloring books (auto-load):
+                        </p>
+                        <div style="background: #FFF3CD; border: 2px solid #FFC107; border-radius: 10px; padding: 10px; margin: 10px 0; font-size: 12px; color: #856404;">
+                            <strong>💡 Tip:</strong> If auto-load doesn't work, use the "📁 Choose PDF File" button above to manually select the same PDF.
+                        </div>
+                        <div class="pdf-list" id="pdfList">
+                            <!-- PDF files will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Page Selection Modal -->
+            <div class="page-selection-modal" id="pageSelectionModal">
+                <div class="modal-content">
+                    <button class="modal-close" id="closePageSelectionModal">✕</button>
+                    <h3>📄 Choose a Page</h3>
+                    <div class="page-list" id="pageList">
+                        <!-- PDF pages will be loaded here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- PDF Canvas Overlay -->
+            <div class="pdf-overlay" id="pdfOverlay">
+                <div class="pdf-controls">
+                    <button class="pdf-control-btn" id="exitPdfMode">← Back to Drawing</button>
+                    <button class="pdf-control-btn" id="clearPdfDrawing">🗑️ Clear Drawing</button>
+                </div>
+                
+                <canvas id="pdfCanvas"></canvas>
+                <canvas id="pdfDrawingCanvas"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Include PDF.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        // Configure PDF.js worker
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+        }
+    </script>
+    
+    <!-- Register Service Worker for PWA -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(registration => {
+                        console.log('Service Worker registered successfully:', registration.scope);
+                    })
+                    .catch(error => {
+                        console.log('Service Worker registration failed:', error);
+                    });
+            });
+        }
+    </script>
+    
+    <script src="app.js"></script>
+</body>
+</html>
