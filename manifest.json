@@ -1,7 +1,7 @@
 {
   "name": "Kids Drawing App By AaronC",
   "short_name": "Drawing App",
-  "description": "A fun drawing and coloring app for kids with special effects, stickers, and coloring books",
+  "description": "A fun drawing app for kids with special effects and stickers",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#FFE5F0",

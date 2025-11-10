@@ -62,11 +62,11 @@
 
         console.log('KidsDrawingApp initialized with tool:', this.currentTool);
 
-        this.setupCanvas();
-        this.setupEventListeners();
-        this.saveState();
-        this.setupColoringBooks();
-        this.startAnimationLoop();
+    this.setupCanvas();
+    this.setupEventListeners();
+    this.saveState();
+    // Coloring books/PDF feature removed
+    this.startAnimationLoop();
         
         // Ensure brush tool is active by default
         setTimeout(() => {
@@ -266,14 +266,7 @@
             console.log('Sticker tool NOT found');
         }
 
-        // Coloring Books tool
-        const coloringBooksBtn = document.getElementById('coloringBooksBtn');
-        if (coloringBooksBtn) {
-            coloringBooksBtn.addEventListener('click', () => {
-                this.showColoringBooksModal();
-                this.closeAllCategories();
-            });
-        }
+        // Coloring Books tool removed
 
         // Panel close buttons
         const closeStickerPanel = document.getElementById('closeStickerPanel');
@@ -337,21 +330,13 @@
         
         if (toolbarZoomIn) {
             toolbarZoomIn.addEventListener('click', () => {
-                if (this.pdfMode) {
-                    this.zoomPdf(1.2);
-                } else {
-                    this.zoomMainCanvas(1.2);
-                }
+                this.zoomMainCanvas(1.2);
             });
         }
         
         if (toolbarZoomOut) {
             toolbarZoomOut.addEventListener('click', () => {
-                if (this.pdfMode) {
-                    this.zoomPdf(0.8);
-                } else {
-                    this.zoomMainCanvas(0.8);
-                }
+                this.zoomMainCanvas(0.8);
             });
         }
 
@@ -1246,420 +1231,35 @@
         });
     }
 
-    setupColoringBooks() {
-        console.log('Setting up coloring books...');
-        
-        // Check if PDF.js is loaded
-        if (typeof pdfjsLib === 'undefined') {
-            console.error('PDF.js library not loaded');
-            return;
-        }
-        
-        console.log('PDF.js library loaded successfully');
+    // Coloring books feature removed; placeholder to avoid reference errors if any remain
+    setupColoringBooks() {}
 
-        // Modal close buttons
-        const closeColoringBooksModal = document.getElementById('closeColoringBooksModal');
-        const closePageSelectionModal = document.getElementById('closePageSelectionModal');
-        
-        if (closeColoringBooksModal) {
-            closeColoringBooksModal.addEventListener('click', () => this.hideColoringBooksModal());
-        }
-        
-        if (closePageSelectionModal) {
-            closePageSelectionModal.addEventListener('click', () => this.hidePageSelectionModal());
-        }
+    // Removed PDF modal methods
+    async showColoringBooksModal() {}
 
-        // PDF overlay controls
-        const exitPdfMode = document.getElementById('exitPdfMode');
-        const clearPdfDrawing = document.getElementById('clearPdfDrawing');
-        
-        if (exitPdfMode) {
-            exitPdfMode.addEventListener('click', () => this.exitPdfMode());
-        }
-        
-        if (clearPdfDrawing) {
-            clearPdfDrawing.addEventListener('click', () => this.clearPdfDrawing());
-        }
+    hideColoringBooksModal() {}
 
-        // PDF file input
-        const pdfFileInput = document.getElementById('pdfFileInput');
-        if (pdfFileInput) {
-            pdfFileInput.addEventListener('change', (e) => this.handlePdfFileInput(e));
-        }
+    async loadPdfFiles() { return []; }
 
-        // Initialize PDF drawing variables
-        this.pdfMode = false;
-        this.pdfCanvas = null;
-        this.pdfDrawingCanvas = null;
-        this.pdfCtx = null;
-        this.pdfDrawingCtx = null;
-        this.pdfOverlayCanvas = null;
-        this.pdfOverlayCtx = null;
-        this.currentPdf = null;
-        this.currentPdfPage = null;
-        this.isPdfDrawing = false;
-        this.pdfLastPoint = null;
-        this.pdfZoomLevel = 1.0; // Initialize zoom level
-        this.pdfBaseScale = 1.0; // Store base scale for reset
-        
-        console.log('Coloring books setup complete');
-    }
+    async handlePdfFileInput() {}
 
-    async showColoringBooksModal() {
-        const modal = document.getElementById('coloringBooksModal');
-        const pdfList = document.getElementById('pdfList');
-        
-        if (modal && pdfList) {
-            // Clear previous content
-            pdfList.innerHTML = '';
-            
-            // Load available PDF files
-            const pdfFiles = await this.loadPdfFiles();
-            
-            if (pdfFiles.length === 0) {
-                pdfList.innerHTML = '<p style="text-align: center; color: #666;">No sample coloring books available</p>';
-            } else {
-                pdfFiles.forEach(pdfFile => {
-                    const pdfItem = document.createElement('div');
-                    pdfItem.className = 'pdf-item';
-                    
-                    // Create a nicer display with icon and text
-                    pdfItem.innerHTML = `
-                        <div style="font-size: 24px; margin-bottom: 8px;">📚</div>
-                        <div>${pdfFile.replace('.pdf', '')}</div>
-                        <div style="font-size: 12px; color: #666; margin-top: 5px;">Click to auto-load</div>
-                    `;
-                    
-                    pdfItem.addEventListener('click', async () => {
-                        // Add loading indicator
-                        pdfItem.style.opacity = '0.6';
-                        pdfItem.innerHTML = `
-                            <div style="font-size: 24px; margin-bottom: 8px;">⏳</div>
-                            <div>Loading...</div>
-                        `;
-                        
-                        await this.selectPdf(pdfFile);
-                    });
-                    pdfList.appendChild(pdfItem);
-                });
-            }
-            
-            modal.classList.add('show');
-        }
-    }
+    async selectPdf() {}
 
-    hideColoringBooksModal() {
-        const modal = document.getElementById('coloringBooksModal');
-        if (modal) {
-            modal.classList.remove('show');
-        }
-    }
+    async showPageSelectionModal() {}
 
-    async loadPdfFiles() {
-        // Since we can't directly read the file system from the browser,
-        // we'll create a hardcoded list of known PDF files
-        // In a real application, this would be done server-side
-        return [
-            'Puppy.pdf',
-            'Butterflies.pdf', 
-            'Endangered_Animals.pdf',
-            'Fairy.pdf',
-            'Fish.pdf',
-            'My_Farm.pdf',
-            'Princess.pdf',
-            'Rose.pdf'
-        ];
-    }
+    async generatePageThumbnail() {}
 
-    async handlePdfFileInput(event) {
-        const file = event.target.files[0];
-        if (!file || file.type !== 'application/pdf') {
-            alert('Please select a valid PDF file.');
-            return;
-        }
+    hidePageSelectionModal() {}
 
-        console.log('Loading PDF file:', file.name);
-        this.hideColoringBooksModal();
+    async selectPage() {}
 
-        try {
-            // Create a file URL
-            const fileUrl = URL.createObjectURL(file);
-            
-            // Load the PDF
-            const loadingTask = pdfjsLib.getDocument(fileUrl);
-            const pdf = await loadingTask.promise;
-            
-            console.log('PDF loaded successfully. Pages:', pdf.numPages);
-            this.currentPdf = pdf;
-            
-            // Show page selection modal
-            await this.showPageSelectionModal(pdf);
-        } catch (error) {
-            console.error('Error loading PDF file:', error);
-            alert('Could not load the PDF file. Please make sure it\'s a valid PDF.');
-        }
-    }
+    async enterPdfMode() {}
 
-    async selectPdf(pdfFileName) {
-        console.log('Selecting PDF:', pdfFileName);
-        this.hideColoringBooksModal();
-        
-        try {
-            // Check if PDF.js is available
-            if (typeof pdfjsLib === 'undefined') {
-                throw new Error('PDF.js library not loaded');
-            }
-            
-            // Load the PDF directly from the coloring-books folder
-            const pdfUrl = `./coloring-books/${pdfFileName}`;
-            console.log('Loading PDF from:', pdfUrl);
-            
-            let pdf;
-            
-            try {
-                // Try loading with a more permissive approach for local files
-                const loadingTask = pdfjsLib.getDocument({
-                    url: pdfUrl,
-                    disableAutoFetch: false,
-                    disableStream: false,
-                    disableRange: false
-                });
-                pdf = await loadingTask.promise;
-                console.log('PDF loaded successfully via direct method. Pages:', pdf.numPages);
-            } catch (directError) {
-                console.log('Direct loading failed, trying fetch approach:', directError.message);
-                
-                // Fallback: try fetch approach
-                try {
-                    const response = await fetch(pdfUrl);
-                    if (!response.ok) {
-                        throw new Error(`Cannot access file: ${response.status} ${response.statusText}`);
-                    }
-                    const arrayBuffer = await response.arrayBuffer();
-                    const loadingTask = pdfjsLib.getDocument(arrayBuffer);
-                    pdf = await loadingTask.promise;
-                    console.log('PDF loaded successfully via fetch method. Pages:', pdf.numPages);
-                } catch (fetchError) {
-                    // If both methods fail, provide helpful guidance
-                    throw new Error(`Auto-load failed. Please use the "📁 Choose PDF File" button to manually select the ${pdfFileName} file from your coloring-books folder.`);
-                }
-            }
-            
-            this.currentPdf = pdf;
-            
-            // Show page selection modal
-            await this.showPageSelectionModal(pdf);
-        } catch (error) {
-            console.error('Error loading PDF:', error);
-            
-            // Show user-friendly error with guidance
-            const errorMessage = `Could not automatically load "${pdfFileName}". This happens due to browser security restrictions.\n\nPlease use the "📁 Choose PDF File" button instead and select the PDF manually.`;
-            alert(errorMessage);
-            
-            // Reopen the modal so user can try file upload
-            this.showColoringBooksModal();
-        }
-    }
-
-    async showPageSelectionModal(pdf) {
-        const modal = document.getElementById('pageSelectionModal');
-        const pageList = document.getElementById('pageList');
-        
-        if (modal && pageList) {
-            pageList.innerHTML = '';
-            
-            // Create page items
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                const pageItem = document.createElement('div');
-                pageItem.className = 'page-item';
-                
-                const thumbnail = document.createElement('div');
-                thumbnail.className = 'page-thumbnail';
-                thumbnail.textContent = 'Loading...';
-                
-                const pageLabel = document.createElement('div');
-                pageLabel.textContent = `Page ${pageNum}`;
-                
-                pageItem.appendChild(thumbnail);
-                pageItem.appendChild(pageLabel);
-                pageItem.addEventListener('click', () => this.selectPage(pageNum));
-                pageList.appendChild(pageItem);
-                
-                // Generate thumbnail
-                this.generatePageThumbnail(pdf, pageNum, thumbnail);
-            }
-            
-            modal.classList.add('show');
-        }
-    }
-
-    async generatePageThumbnail(pdf, pageNum, thumbnailElement) {
-        try {
-            const page = await pdf.getPage(pageNum);
-            const viewport = page.getViewport({ scale: 0.2 });
-            
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            
-            await page.render({
-                canvasContext: ctx,
-                viewport: viewport
-            }).promise;
-            
-            thumbnailElement.innerHTML = '';
-            thumbnailElement.appendChild(canvas);
-        } catch (error) {
-            console.error('Error generating thumbnail:', error);
-            thumbnailElement.textContent = `Page ${pageNum}`;
-        }
-    }
-
-    hidePageSelectionModal() {
-        const modal = document.getElementById('pageSelectionModal');
-        if (modal) {
-            modal.classList.remove('show');
-        }
-    }
-
-    async selectPage(pageNum) {
-        console.log('Selecting page:', pageNum);
-        this.hidePageSelectionModal();
-        
-        try {
-            if (!this.currentPdf) {
-                throw new Error('No PDF loaded');
-            }
-            
-            // Get the page
-            console.log('Getting page', pageNum, 'from PDF with', this.currentPdf.numPages, 'pages');
-            const page = await this.currentPdf.getPage(pageNum);
-            this.currentPdfPage = page;
-            
-            console.log('Page loaded successfully');
-            
-            // Enter PDF mode
-            await this.enterPdfMode(page);
-        } catch (error) {
-            console.error('Error loading page:', error);
-            alert('Could not load the page. Please try again.');
-        }
-    }
-
-    async enterPdfMode(page) {
-        console.log('Entering PDF mode...');
-        
-        // Set PDF mode flag first
-        this.pdfMode = true;
-        
-        // Hide main canvas
-        const mainCanvas = document.getElementById('drawingCanvas');
-        if (mainCanvas) {
-            mainCanvas.style.display = 'none';
-            console.log('Main canvas hidden');
-        }
-        
-        // Show PDF overlay
-        const pdfOverlay = document.getElementById('pdfOverlay');
-        if (pdfOverlay) {
-            pdfOverlay.classList.add('show');
-            console.log('PDF overlay shown');
-        }
-        
-        // Setup PDF canvases
-        this.pdfCanvas = document.getElementById('pdfCanvas');
-        this.pdfDrawingCanvas = document.getElementById('pdfDrawingCanvas');
-        
-        console.log('PDF canvases found:', !!this.pdfCanvas, !!this.pdfDrawingCanvas);
-        
-        // Create PDF overlay canvas for particles immediately
-        if (!this.pdfOverlayCanvas) {
-            this.pdfOverlayCanvas = document.createElement('canvas');
-            this.pdfOverlayCanvas.id = 'pdfOverlayCanvas';
-            this.pdfOverlayCanvas.style.position = 'absolute';
-            this.pdfOverlayCanvas.style.pointerEvents = 'none';
-            this.pdfOverlayCanvas.style.zIndex = '4002'; // Above PDF drawing canvas (which is at 4001)
-            this.pdfOverlayCanvas.style.background = 'transparent'; // Transparent background
-            document.getElementById('pdfOverlay').appendChild(this.pdfOverlayCanvas);
-            
-            // Set initial size
-            this.pdfOverlayCanvas.width = window.innerWidth;
-            this.pdfOverlayCanvas.height = window.innerHeight;
-            this.pdfOverlayCtx = this.pdfOverlayCanvas.getContext('2d');
-            
-            console.log('PDF overlay canvas created and context initialized');
-        }
-        
-        if (this.pdfCanvas && this.pdfDrawingCanvas) {
-            // Store the current page for zoom operations
-            this.currentPdfPage = page;
-            
-            // Calculate scale to use full screen (accounting for toolbar)
-            const toolbarHeight = 80; // Reserve space for toolbar at top
-            const availableWidth = window.innerWidth;
-            const availableHeight = window.innerHeight - toolbarHeight;
-            
-            const scale = Math.min(
-                availableWidth / page.getViewport({ scale: 1 }).width,
-                availableHeight / page.getViewport({ scale: 1 }).height
-            ); // Use full available space (no margin reduction)
-            
-            // Store base scale and reset zoom level only if not already in PDF mode
-            this.pdfBaseScale = scale;
-            if (!this.pdfMode) {
-                this.pdfZoomLevel = 1.0;
-            }
-            
-            console.log('About to render PDF page...');
-            await this.renderPdfPage();
-            
-            // Setup drawing events
-            this.setupPdfDrawingEvents();
-            
-            this.updateZoomDisplay();
-            console.log('PDF mode setup complete');
-        }
-    }
-
-    zoomPdf(factor) {
-        if (!this.pdfMode || !this.currentPdfPage) {
-            console.log('PDF zoom cancelled - not in PDF mode or no page');
-            return;
-        }
-        
-        const oldZoom = this.pdfZoomLevel;
-        this.pdfZoomLevel *= factor;
-        
-        // Limit zoom levels
-        if (this.pdfZoomLevel < 0.5) this.pdfZoomLevel = 0.5;
-        if (this.pdfZoomLevel > 3.0) this.pdfZoomLevel = 3.0;
-        
-        console.log(`PDF Zoom: ${oldZoom.toFixed(2)} -> ${this.pdfZoomLevel.toFixed(2)} (base: ${this.pdfBaseScale.toFixed(2)})`);
-        
-        // Show visual feedback
-        const feedback = document.createElement('div');
-        feedback.textContent = `PDF Zoom: ${this.pdfZoomLevel.toFixed(1)}x`;
-        feedback.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.8);color:white;padding:15px 25px;border-radius:10px;z-index:10000;font-size:18px;font-weight:bold;';
-        document.body.appendChild(feedback);
-        setTimeout(() => feedback.remove(), 1500);
-        
-        this.renderPdfPage();
-        this.updateZoomDisplay();
-    }
+    zoomPdf() {}
     
-    resetPdfZoom() {
-        if (!this.pdfMode || !this.currentPdfPage) return;
-        
-        this.pdfZoomLevel = 1.0;
-        this.renderPdfPage();
-        this.updateZoomDisplay();
-    }
+    resetPdfZoom() {}
     
-    updateZoomDisplay() {
-        // Zoom level display removed for cleaner UI
-        // The zoom functionality still works without showing the percentage
-    }
+    updateZoomDisplay() {}
 
     zoomMainCanvas(factor) {
         this.mainZoomLevel *= factor;
@@ -1690,387 +1290,21 @@
         this.resizeOverlayCanvas();
     }
 
-    async renderPdfPage() {
-        console.log('renderPdfPage called');
-        if (!this.currentPdfPage || !this.pdfCanvas) {
-            console.log('renderPdfPage cancelled - missing page or canvas');
-            return;
-        }
+    async renderPdfPage() {}
 
-        console.log('Starting PDF page render...');
+    setupPdfDrawingEvents() {}
 
-        const toolbarHeight = 80;
-        const availableWidth = window.innerWidth;
-        const availableHeight = window.innerHeight - toolbarHeight;
-        
-        const finalScale = this.pdfBaseScale * this.pdfZoomLevel;
-        console.log(`renderPdfPage: baseScale=${this.pdfBaseScale.toFixed(2)}, zoomLevel=${this.pdfZoomLevel.toFixed(2)}, finalScale=${finalScale.toFixed(2)}`);
-        
-        const viewport = this.currentPdfPage.getViewport({ scale: finalScale });
-        console.log(`Canvas will be resized to: ${viewport.width}x${viewport.height}`);
-        
-        // Save drawing content before resizing (resizing clears the canvas)
-        let drawingImageData = null;
-        if (this.pdfDrawingCanvas && this.pdfDrawingCtx) {
-            try {
-                drawingImageData = this.pdfDrawingCtx.getImageData(0, 0, this.pdfDrawingCanvas.width, this.pdfDrawingCanvas.height);
-            } catch (e) {
-                // Ignore errors when canvas is empty
-            }
-        }
-        
-        // Set canvas sizes
-        this.pdfCanvas.width = viewport.width;
-        this.pdfCanvas.height = viewport.height;
-        this.pdfDrawingCanvas.width = viewport.width;
-        this.pdfDrawingCanvas.height = viewport.height;
-        
-        // Update PDF overlay canvas size and position
-        if (this.pdfOverlayCanvas) {
-            this.pdfOverlayCanvas.width = viewport.width;
-            this.pdfOverlayCanvas.height = viewport.height;
-        }
-        
-        // Center canvases horizontally, position below toolbar
-        const left = (window.innerWidth - viewport.width) / 2;
-        const top = toolbarHeight + (availableHeight - viewport.height) / 2;
-        
-        // Store PDF canvas offset for particle coordinate adjustment
-        this.pdfCanvasOffset = { left, top };
-        
-        this.pdfCanvas.style.left = left + 'px';
-        this.pdfCanvas.style.top = top + 'px';
-        this.pdfDrawingCanvas.style.left = left + 'px';
-        this.pdfDrawingCanvas.style.top = top + 'px';
-        if (this.pdfOverlayCanvas) {
-            this.pdfOverlayCanvas.style.left = left + 'px';
-            this.pdfOverlayCanvas.style.top = top + 'px';
-        }
-        
-        // Get contexts (they are reset when canvas size changes)
-        this.pdfCtx = this.pdfCanvas.getContext('2d');
-        this.pdfDrawingCtx = this.pdfDrawingCanvas.getContext('2d', { willReadFrequently: true });
-        if (this.pdfOverlayCanvas) {
-            this.pdfOverlayCtx = this.pdfOverlayCanvas.getContext('2d');
-            console.log('PDF overlay context created');
-        }
-        
-        // Clear and render the PDF page
-        this.pdfCtx.clearRect(0, 0, this.pdfCanvas.width, this.pdfCanvas.height);
-        await this.currentPdfPage.render({
-            canvasContext: this.pdfCtx,
-            viewport: viewport
-        }).promise;
-        
-        console.log(`PDF rendered successfully at ${viewport.width}x${viewport.height}`);
-        
-        // Restore drawing content if it existed
-        if (drawingImageData) {
-            try {
-                // Scale the drawing to match the new zoom level
-                const oldCanvas = document.createElement('canvas');
-                oldCanvas.width = drawingImageData.width;
-                oldCanvas.height = drawingImageData.height;
-                const oldCtx = oldCanvas.getContext('2d');
-                oldCtx.putImageData(drawingImageData, 0, 0);
-                
-                // Draw the old content scaled to the new size
-                this.pdfDrawingCtx.drawImage(oldCanvas, 0, 0, oldCanvas.width, oldCanvas.height, 0, 0, viewport.width, viewport.height);
-            } catch (e) {
-                // Ignore errors when scaling drawing
-            }
-        }
-    }
+    startPdfDrawing() {}
 
-    setupPdfDrawingEvents() {
-        if (!this.pdfDrawingCanvas) {
-            console.log('setupPdfDrawingEvents - PDF drawing canvas not found!');
-            return;
-        }
-        
-        console.log('setupPdfDrawingEvents - Setting up event listeners for PDF drawing');
-        
-        this.pdfDrawingCanvas.addEventListener('mousedown', (e) => {
-            // Check for flag clicks first
-            const rect = this.pdfDrawingCanvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
-            
-            if (!this.handleFlagClick(x, y)) {
-                this.startPdfDrawing(e);
-            }
-        });
-        this.pdfDrawingCanvas.addEventListener('mousemove', (e) => {
-            this.drawOnPdf(e);
-            this.updateSnapPointIndicators(e);
-        });
-        this.pdfDrawingCanvas.addEventListener('mouseup', () => this.stopPdfDrawing());
-        this.pdfDrawingCanvas.addEventListener('mouseout', () => this.stopPdfDrawing());
-        
-        // Touch events for mobile
-        this.pdfDrawingCanvas.addEventListener('touchstart', (e) => this.handlePdfTouch(e));
-        this.pdfDrawingCanvas.addEventListener('touchmove', (e) => this.handlePdfTouch(e));
-        this.pdfDrawingCanvas.addEventListener('touchend', () => this.stopPdfDrawing());
-    }
+    drawOnPdf() {}
 
-    startPdfDrawing(e) {
-        this.isPdfDrawing = true;
-        const rect = this.pdfDrawingCanvas.getBoundingClientRect();
-        this.pdfLastPoint = {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
-        };
-        
-        // Initialize blocky builder for PDF mode
-        if (this.currentTool === 'blocky-builder') {
-            this.blockSize = Math.max(4, this.brushSize * 0.8);
-            this.lastBlockX = null;
-            this.lastBlockY = null;
-            // Draw the first block immediately
-            const gridX = Math.floor(this.pdfLastPoint.x / this.blockSize) * this.blockSize;
-            const gridY = Math.floor(this.pdfLastPoint.y / this.blockSize) * this.blockSize;
-            // Temporarily switch context to PDF context
-            const originalCtx = this.ctx;
-            this.ctx = this.pdfDrawingCtx;
-            this.drawSingleBlock(gridX, gridY);
-            this.ctx = originalCtx;
-        }
-        
-        console.log('startPdfDrawing - tool:', this.currentTool, 'position:', this.pdfLastPoint.x, this.pdfLastPoint.y);
-    }
+    stopPdfDrawing() {}
 
-    drawOnPdf(e) {
-        if (!this.isPdfDrawing || !this.pdfDrawingCtx) return;
-        
-        const rect = this.pdfDrawingCanvas.getBoundingClientRect();
-        const currentPoint = {
-            x: e.clientX - rect.left,
-            y: e.clientY - rect.top
-        };
-        
-        console.log('drawOnPdf called - tool:', this.currentTool, 'canvas coords:', currentPoint.x, currentPoint.y, 'isPdfDrawing:', this.isPdfDrawing);
-        
-        // Temporarily switch context to PDF context for all drawing operations
-        const originalCtx = this.ctx;
-        const originalCanvas = this.canvas;
-        this.ctx = this.pdfDrawingCtx;
-        this.canvas = this.pdfDrawingCanvas;
-        
-        // Use the same tool system as main canvas, but with PDF context
-        if (this.currentTool === 'brush') {
-            this.ctx.globalCompositeOperation = 'source-over';
-            if (this.isRainbowMode) {
-                // For rainbow mode, draw individual segments
-                this.ctx.strokeStyle = this.getCurrentColor();
-                this.ctx.lineWidth = this.brushSize;
-                this.ctx.lineCap = 'round';
-                this.ctx.lineJoin = 'round';
-                this.ctx.beginPath();
-                this.ctx.moveTo(this.pdfLastPoint.x, this.pdfLastPoint.y);
-                this.ctx.lineTo(currentPoint.x, currentPoint.y);
-                this.ctx.stroke();
-            } else {
-                // Normal brush behavior
-                this.ctx.strokeStyle = this.getCurrentColor();
-                this.ctx.lineWidth = this.brushSize;
-                this.ctx.lineCap = 'round';
-                this.ctx.lineJoin = 'round';
-                this.ctx.beginPath();
-                this.ctx.moveTo(this.pdfLastPoint.x, this.pdfLastPoint.y);
-                this.ctx.lineTo(currentPoint.x, currentPoint.y);
-                this.ctx.stroke();
-            }
-        } else if (this.currentTool === 'eraser') {
-            this.drawEraser(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'fireworks') {
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            console.log('PDF Fireworks: canvas coords', currentPoint.x, currentPoint.y);
-            this.drawFireworks(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'spray') {
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            this.drawSpray(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'glitter') {
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            this.drawGlitter(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'neon') {
-            // PDF-specific neon drawing with smooth continuous paths
-            this.ctx.save();
-            const currentColor = this.getCurrentColor();
-            
-            // Initialize neon path points if starting new stroke
-            if (!this.neonWhitePoints) {
-                this.neonWhitePoints = [{ x: this.pdfLastPoint.x, y: this.pdfLastPoint.y }];
-                
-                // For colored glow, start a new continuous path
-                this.ctx.shadowColor = currentColor;
-                this.ctx.shadowBlur = this.brushSize * 0.5;
-                this.ctx.strokeStyle = currentColor;
-                this.ctx.lineWidth = this.brushSize;
-                this.ctx.lineCap = 'round';
-                this.ctx.lineJoin = 'round';
-                this.ctx.beginPath();
-                this.ctx.moveTo(this.pdfLastPoint.x, this.pdfLastPoint.y);
-            }
-            
-            // Add current point to the path
-            this.neonWhitePoints.push({ x: currentPoint.x, y: currentPoint.y });
-            
-            // Continue the colored glow path
-            this.ctx.shadowColor = currentColor;
-            this.ctx.shadowBlur = this.brushSize * 0.5;
-            this.ctx.strokeStyle = currentColor;
-            this.ctx.lineWidth = this.brushSize;
-            this.ctx.lineCap = 'round';
-            this.ctx.lineJoin = 'round';
-            this.ctx.lineTo(currentPoint.x, currentPoint.y);
-            this.ctx.stroke();
-            
-            // Draw smooth white center by redrawing entire path
-            // (This is necessary for smoothness, but we clear and redraw only during this stroke)
-            this.ctx.shadowColor = '#ffffff';
-            this.ctx.shadowBlur = this.brushSize * 0.3;
-            this.ctx.strokeStyle = '#ffffff';
-            this.ctx.lineWidth = this.brushSize * 0.4;
-            this.ctx.lineCap = 'round';
-            this.ctx.lineJoin = 'round';
-            this.ctx.globalCompositeOperation = 'source-over';
-            this.ctx.beginPath();
-            this.ctx.moveTo(this.neonWhitePoints[0].x, this.neonWhitePoints[0].y);
-            for (let i = 1; i < this.neonWhitePoints.length; i++) {
-                this.ctx.lineTo(this.neonWhitePoints[i].x, this.neonWhitePoints[i].y);
-            }
-            this.ctx.stroke();
-            
-            this.ctx.restore();
-        } else if (this.currentTool === 'bubble') {
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            console.log('PDF Balloons: canvas coords', currentPoint.x, currentPoint.y);
-            this.drawBubbles(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'confetti') {
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            this.drawConfetti(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'sparkles') {
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            this.drawColorfulWorms(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'lightning') {
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            this.drawLightning(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'bugs') {
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            this.drawBugs(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'wobbly-crayon') {
-            // Set up last point for wobbly crayon continuity
-            this.lastPoint = this.pdfLastPoint;
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            console.log('PDF Wobbly Crayon: canvas coords', currentPoint.x, currentPoint.y);
-            this.drawWobblyCrayon(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'smudge') {
-            this.startSmudging(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'blend') {
-            this.drawBlend(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'train-track') {
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            this.drawTrainTrack(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'leaf-trail') {
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            this.drawLeafTrail(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'flower-chain') {
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            this.drawFlowerChain(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'grass-stamper') {
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            this.drawGrassStamper(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'blocky-builder') {
-            this.drawBlockyBuilder(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'mirror-painting') {
-            this.lastPoint = this.pdfLastPoint;
-            this.drawMirrorPainting(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'fill') {
-            this.floodFill(currentPoint.x, currentPoint.y);
-        } else if (this.currentTool === 'streamers') {
-            // In PDF mode, use canvas coordinates directly (no conversion needed)
-            this.drawStreamers(currentPoint.x, currentPoint.y);
-        }
-        
-        // Restore original context
-        this.ctx = originalCtx;
-        this.canvas = originalCanvas;
-        
-        this.pdfLastPoint = currentPoint;
-    }
+    handlePdfTouch() {}
 
-    stopPdfDrawing() {
-        // Finalize train track and create a train
-        if (this.currentTool === 'train-track' && this.currentTrack.length > 1) {
-            // Try to merge with existing tracks
-            const merged = this.mergeTracksIfConnected();
-            
-            if (!merged) {
-                // No merge, add as new track
-                this.trainTracks.push(this.currentTrack);
-                const trackIndex = this.trainTracks.length - 1;
-                // Create a new train for this track
-                this.createTrainForTrack(this.currentTrack, trackIndex);
-            }
-            
-            this.currentTrack = [];
-        }
-        
-        // Reset neon white points to prevent jumping
-        this.neonWhitePoints = null;
-        
-        // Reset blocky builder position to prevent jumping
-        this.lastBlockX = null;
-        this.lastBlockY = null;
-        
-        this.isPdfDrawing = false;
-        this.pdfLastPoint = null;
-    }
+    clearPdfDrawing() {}
 
-    handlePdfTouch(e) {
-        e.preventDefault();
-        const touch = e.touches[0];
-        const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 'mousemove', {
-            clientX: touch.clientX,
-            clientY: touch.clientY
-        });
-        this.pdfDrawingCanvas.dispatchEvent(mouseEvent);
-    }
-
-    clearPdfDrawing() {
-        if (this.pdfDrawingCtx && this.pdfDrawingCanvas) {
-            this.pdfDrawingCtx.clearRect(0, 0, this.pdfDrawingCanvas.width, this.pdfDrawingCanvas.height);
-        }
-    }
-
-    exitPdfMode() {
-        // Hide PDF overlay
-        const pdfOverlay = document.getElementById('pdfOverlay');
-        if (pdfOverlay) {
-            pdfOverlay.classList.remove('show');
-        }
-        
-        // Show main canvas
-        const mainCanvas = document.getElementById('drawingCanvas');
-        if (mainCanvas) {
-            mainCanvas.style.display = 'block';
-        }
-        
-        // Clear PDF drawing
-        this.clearPdfDrawing();
-        
-        // Clean up PDF overlay canvas
-        if (this.pdfOverlayCanvas && this.pdfOverlayCanvas.parentElement) {
-            this.pdfOverlayCanvas.parentElement.removeChild(this.pdfOverlayCanvas);
-            this.pdfOverlayCanvas = null;
-            this.pdfOverlayCtx = null;
-        }
-        
-        // Reset PDF mode
-        this.pdfMode = false;
-        this.currentPdf = null;
-        this.currentPdfPage = null;
-    }
+    exitPdfMode() {}
 
     startAnimationLoop() {
         const animate = () => {
@@ -2088,8 +1322,8 @@
 
     updateParticles() {
         // Determine which overlay context to use based on current mode
-        const overlayCtx = this.pdfMode ? this.pdfOverlayCtx : this.overlayCtx;
-        const overlayCanvas = this.pdfMode ? this.pdfOverlayCanvas : this.overlayCanvas;
+    const overlayCtx = this.overlayCtx;
+    const overlayCanvas = this.overlayCanvas;
         
         if (this.particles.length > 0) {
             console.log('updateParticles - pdfMode:', this.pdfMode, 'overlayCtx exists:', !!overlayCtx, 'particles:', this.particles.length, 'overlayCanvas size:', overlayCanvas ? `${overlayCanvas.width}x${overlayCanvas.height}` : 'null');

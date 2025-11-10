@@ -6,7 +6,7 @@
     <title>Kids Drawing App By AaronC</title>
     
     <!-- PWA Meta Tags -->
-    <meta name="description" content="A fun drawing and coloring app for kids with special effects, stickers, and coloring books">
+    <meta name="description" content="A fun drawing app for kids with special effects and stickers">
     <meta name="theme-color" content="#FF69B4">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -73,7 +73,6 @@
                 </div>
                 <div class="category-content" id="tools">
                     <button class="tool-btn" id="stickerTool">🌟 Stickers</button>
-                    <button class="tool-btn" id="coloringBooksBtn">📖 Coloring Books</button>
                 </div>
             </div>
 
@@ -251,69 +250,11 @@
                 </div>
             </div>
 
-            <!-- Coloring Books Modal -->
-            <div class="coloring-books-modal" id="coloringBooksModal">
-                <div class="modal-content">
-                    <button class="modal-close" id="closeColoringBooksModal">✕</button>
-                    <h3>📖 Choose a Coloring Book</h3>
-                    
-                    <!-- File input for local PDFs -->
-                    <div style="margin-bottom: 20px; text-align: center;">
-                        <p style="color: #666; margin-bottom: 15px; font-family: 'Comic Sans MS', cursive;">
-                            Select any PDF coloring book from your computer!
-                        </p>
-                        <label for="pdfFileInput" class="pdf-upload-btn">
-                            📁 Choose PDF File
-                        </label>
-                        <input type="file" id="pdfFileInput" accept=".pdf" style="display: none;">
-                    </div>
-                    
-                    <div class="sample-pdfs">
-                        <p style="color: #666; font-size: 14px; text-align: center; margin: 10px 0;">
-                            Try our sample coloring books (auto-load):
-                        </p>
-                        <div style="background: #FFF3CD; border: 2px solid #FFC107; border-radius: 10px; padding: 10px; margin: 10px 0; font-size: 12px; color: #856404;">
-                            <strong>💡 Tip:</strong> If auto-load doesn't work, use the "📁 Choose PDF File" button above to manually select the same PDF.
-                        </div>
-                        <div class="pdf-list" id="pdfList">
-                            <!-- PDF files will be loaded here -->
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Page Selection Modal -->
-            <div class="page-selection-modal" id="pageSelectionModal">
-                <div class="modal-content">
-                    <button class="modal-close" id="closePageSelectionModal">✕</button>
-                    <h3>📄 Choose a Page</h3>
-                    <div class="page-list" id="pageList">
-                        <!-- PDF pages will be loaded here -->
-                    </div>
-                </div>
-            </div>
-
-            <!-- PDF Canvas Overlay -->
-            <div class="pdf-overlay" id="pdfOverlay">
-                <div class="pdf-controls">
-                    <button class="pdf-control-btn" id="exitPdfMode">← Back to Drawing</button>
-                    <button class="pdf-control-btn" id="clearPdfDrawing">🗑️ Clear Drawing</button>
-                </div>
-                
-                <canvas id="pdfCanvas"></canvas>
-                <canvas id="pdfDrawingCanvas"></canvas>
-            </div>
+            <!-- (Coloring books & PDF feature removed) -->
         </div>
     </div>
 
-    <!-- Include PDF.js -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <script>
-        // Configure PDF.js worker
-        if (typeof pdfjsLib !== 'undefined') {
-            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-        }
-    </script>
+    <!-- PDF.js removed -->
     
     <!-- Register Service Worker for PWA -->
     <script>
