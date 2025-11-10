@@ -156,9 +156,9 @@ body {
     top: calc(100% + 5px);
     left: 0;
     min-width: 400px; /* Wider to accommodate multiple columns */
-    max-width: 800px; /* Maximum width */
+    max-width: 90vw; /* Responsive maximum width */
     width: max-content; /* Expand based on content */
-    height: 300px; /* Fixed height to force column wrapping */
+    height: auto; /* Auto height to fit content */
     max-height: 70vh; /* Responsive height limit */
     background: linear-gradient(135deg, #FFE4E6, #F0F8FF);
     border: 3px solid #FF69B4;
@@ -166,7 +166,8 @@ body {
     padding: 15px;
     box-shadow: 0 10px 30px rgba(255, 105, 180, 0.5);
     z-index: 5000; /* Ensure dropdowns sit above canvas and overlay */
-    overflow: hidden; /* Hide any overflow */
+    overflow-x: auto; /* Allow horizontal scroll if needed */
+    overflow-y: auto; /* Allow vertical scroll if needed */
 }
 
 /* Tool buttons in multi-column layout */
@@ -175,6 +176,20 @@ body {
     width: 170px; /* Fixed width for consistent columns */
     white-space: nowrap; /* prevent text wrapping */
     flex-shrink: 0; /* prevent shrinking */
+}
+
+/* Brushes & Effects dropdown - use grid for better layout with many items */
+#brushes-effects {
+    display: none;
+    grid-template-columns: repeat(auto-fill, 170px); /* Auto-fill columns */
+    grid-auto-flow: row; /* Fill rows first */
+    gap: 6px;
+    height: auto; /* Auto height for grid */
+    max-height: 60vh; /* Limit height */
+}
+
+#brushes-effects.show {
+    display: grid; /* Use grid instead of flex for this dropdown */
 }
 
 .category-content.show {
