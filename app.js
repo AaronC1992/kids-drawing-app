@@ -140,12 +140,34 @@
             this.mainCanvasBaseHeight = Math.max(200, availableHeight);
         }
         
+        // Save current drawing before resize (resizing clears the canvas)
+        const currentDrawing = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        const oldWidth = this.canvas.width;
+        const oldHeight = this.canvas.height;
+        
         // Apply zoom to dimensions
         this.canvas.width = this.mainCanvasBaseWidth * this.mainZoomLevel;
         this.canvas.height = this.mainCanvasBaseHeight * this.mainZoomLevel;
         
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
+        
+        // Restore the drawing if there was one
+        if (oldWidth > 0 && oldHeight > 0) {
+            // Create temporary canvas to hold the old drawing
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = oldWidth;
+            tempCanvas.height = oldHeight;
+            const tempCtx = tempCanvas.getContext('2d');
+            tempCtx.putImageData(currentDrawing, 0, 0);
+            
+            // Fill with white background first
+            this.ctx.fillStyle = 'white';
+            this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
+            
+            // Draw the old content scaled to fit new dimensions
+            this.ctx.drawImage(tempCanvas, 0, 0, oldWidth, oldHeight, 0, 0, this.canvas.width, this.canvas.height);
+        }
         
         // Also resize overlay canvas
         this.resizeOverlayCanvas();
