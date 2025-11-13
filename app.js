@@ -468,6 +468,16 @@
             return;
         }
         
+        // Initialize replay stroke (if recording and not sticker/decoration)
+        if (window.Replay && window.Replay.isRecording && !this.stickerMode && !this.decorationMode) {
+            window.Replay.startStroke({
+                tool: this.currentTool,
+                color: this.getCurrentColor(),
+                size: this.brushSize,
+                start: {x, y}
+            });
+        }
+
         // Handle sticker placement
         if (this.stickerMode && this.selectedSticker) {
             console.log('Placing sticker at:', x, y);
@@ -639,6 +649,11 @@
             this.drawMirrorPainting(x, y);
         }
 
+        // Record point into current stroke if replay recording active
+        if (window.Replay && window.Replay.isRecording && window.Replay.currentStroke) {
+            window.Replay.addPoint(x, y);
+        }
+
         this.lastPoint = { x, y };
     }
 
@@ -677,6 +692,14 @@
             
             this.isDrawing = false;
             this.saveState();
+
+            // Finalize stroke recording
+            if (window.Replay && window.Replay.isRecording) {
+                window.Replay.endStroke();
+                if (window.Achievements) {
+                    window.Achievements.onStrokeComplete(window.Replay.lastStrokeMeta());
+                }
+            }
         }
     }
     
@@ -4391,5 +4414,13 @@ function toggleCategory(categoryId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    new KidsDrawingApp();
+    const app = new KidsDrawingApp();
+    window.appInstance = app;
+    // Initialize extras
+    if (window.DailyUnlock) window.DailyUnlock.init();
+    if (window.Challenges) window.Challenges.init(app);
+    if (window.Achievements) window.Achievements.init();
+    if (window.Replay) window.Replay.init(app);
+    if (window.Analytics) window.Analytics.init();
+    if (window.GifExport) window.GifExport.init();
 });
