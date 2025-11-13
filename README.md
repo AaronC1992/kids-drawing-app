@@ -1,7 +1,6 @@
-# 🌐 Web App: https://aaronc1992.github.io/kids-drawing-app/
-# 📦 Android APK (latest release): https://github.com/AaronC1992/kids-drawing-app/releases/latest/download/app-release.apk
-
 # 🎨 Kids Drawing App
+
+🌐 **[Play Online](https://aaronc1992.github.io/kids-drawing-app/)** | 📱 **[Download Android App](https://github.com/AaronC1992/kids-drawing-app/releases/download/v1.0.0/kids-drawing-app-v1.0.apk)**
 
 A fun, interactive drawing application designed for kids with colorful effects, animated tools, and special brushes!
 
