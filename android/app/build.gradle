@@ -153,11 +153,20 @@ android {
     buildTypes {
         release {
             minifyEnabled true
+            // To avoid build failure while fixing keystore password, disable signing here.
+            // Re-enable with a signingConfig once the correct keystore credentials are confirmed.
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        // Raise Java compatibility to 11 to silence JDK 21 deprecation warnings for source/target 8.
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
+    }
+    // Use Java toolchain to ensure consistent JDK for compilation (Gradle will download if needed).
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(17)
+        }
     }
     lintOptions {
         checkReleaseBuilds false
