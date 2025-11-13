@@ -1,8 +1,10 @@
 {
   "name": "Kids Drawing App By AaronC",
   "short_name": "Drawing App",
+  "id": "/kids-drawing-app/",
   "description": "A fun drawing app for kids with special effects and stickers",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "background_color": "#FFE5F0",
   "theme_color": "#FF69B4",
@@ -12,31 +14,31 @@
       "src": "icon-72.png",
       "sizes": "72x72",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icon-96.png",
       "sizes": "96x96",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icon-128.png",
       "sizes": "128x128",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icon-144.png",
       "sizes": "144x144",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icon-152.png",
       "sizes": "152x152",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icon-192.png",
@@ -48,7 +50,7 @@
       "src": "icon-384.png",
       "sizes": "384x384",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
       "src": "icon-512.png",
@@ -58,5 +60,8 @@
     }
   ],
   "categories": ["entertainment", "education", "kids"],
-  "screenshots": []
+  "screenshots": [],
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "prefer_related_applications": false,
+  "related_applications": []
 }
