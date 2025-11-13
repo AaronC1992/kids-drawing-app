@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generate App Icons</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        .container {
+            background: white;
+            color: #333;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #667eea;
+            margin-top: 0;
+        }
+        .instructions {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #667eea;
+        }
+        .icon-preview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .icon-item {
+            text-align: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border: 2px solid #dee2e6;
+        }
+        .icon-item canvas {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            max-width: 100%;
+            height: auto;
+        }
+        .icon-item p {
+            margin: 10px 0 0;
+            font-weight: bold;
+            color: #495057;
+        }
+        button {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            margin: 5px;
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: #764ba2;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        .status {
+            margin: 20px 0;
+            padding: 15px;
+            border-radius: 8px;
+            display: none;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .file-input-label {
+            display: inline-block;
+            background: #28a745;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .file-input-label:hover {
+            background: #218838;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Generate Android App Icons</h1>
+        
+        <div class="instructions">
+            <strong>Instructions:</strong>
+            <ol>
+                <li>The icon from <code>assets/app-icon.png</code> will be loaded automatically</li>
+                <li>Click "Generate All Icons" to create all required sizes</li>
+                <li>Download each icon and save them in your project root folder</li>
+                <li>Icon sizes: 72, 96, 128, 144, 152, 192, 384, 512 pixels</li>
+            </ol>
+        </div>
+
+        <div>
+            <label class="file-input-label" for="iconInput">
+                📁 Or Choose Different Icon
+            </label>
+            <input type="file" id="iconInput" accept="image/*">
+        </div>
+
+        <div id="status" class="status"></div>
+
+        <button id="generateBtn" onclick="generateIcons()">🎨 Generate All Icons</button>
+        <button id="downloadAllBtn" onclick="downloadAll()" disabled>💾 Download All Icons as ZIP</button>
+
+        <div class="icon-preview" id="iconPreview"></div>
+    </div>
+
+    <script>
+        const iconSizes = [72, 96, 128, 144, 152, 192, 384, 512];
+        let sourceImage = null;
+        let generatedIcons = {};
+
+        // Try to load the default icon from assets
+        window.addEventListener('load', () => {
+            const defaultIcon = new Image();
+            defaultIcon.crossOrigin = "anonymous";
+            defaultIcon.onload = () => {
+                sourceImage = defaultIcon;
+                showStatus('Default icon loaded from assets/app-icon.png', 'success');
+                document.getElementById('generateBtn').disabled = false;
+            };
+            defaultIcon.onerror = () => {
+                showStatus('Could not load default icon. Please select an icon file.', 'error');
+            };
+            defaultIcon.src = './assets/app-icon.png?' + Date.now(); // Cache bust
+        });
+
+        document.getElementById('iconInput').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        sourceImage = img;
+                        showStatus(`Icon loaded: ${file.name}`, 'success');
+                        document.getElementById('generateBtn').disabled = false;
+                    };
+                    img.src = event.target.result;
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+        }
+
+        function generateIcons() {
+            if (!sourceImage) {
+                showStatus('Please select an icon first!', 'error');
+                return;
+            }
+
+            const preview = document.getElementById('iconPreview');
+            preview.innerHTML = '';
+            generatedIcons = {};
+
+            iconSizes.forEach(size => {
+                const canvas = document.createElement('canvas');
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+
+                // Draw with high quality
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                
+                // Draw the image centered and scaled to fit
+                const scale = Math.min(size / sourceImage.width, size / sourceImage.height);
+                const x = (size - sourceImage.width * scale) / 2;
+                const y = (size - sourceImage.height * scale) / 2;
+                
+                ctx.drawImage(sourceImage, x, y, sourceImage.width * scale, sourceImage.height * scale);
+
+                // Store the canvas
+                generatedIcons[size] = canvas;
+
+                // Create preview
+                const iconItem = document.createElement('div');
+                iconItem.className = 'icon-item';
+                
+                const displayCanvas = canvas.cloneNode(true);
+                iconItem.appendChild(displayCanvas);
+                
+                const label = document.createElement('p');
+                label.textContent = `${size}×${size}px`;
+                iconItem.appendChild(label);
+
+                const downloadBtn = document.createElement('button');
+                downloadBtn.textContent = '💾 Download';
+                downloadBtn.onclick = () => downloadIcon(size);
+                iconItem.appendChild(downloadBtn);
+
+                preview.appendChild(iconItem);
+            });
+
+            showStatus(`✅ Generated ${iconSizes.length} icons successfully!`, 'success');
+            document.getElementById('downloadAllBtn').disabled = false;
+        }
+
+        function downloadIcon(size) {
+            const canvas = generatedIcons[size];
+            if (!canvas) return;
+
+            canvas.toBlob((blob) => {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `icon-${size}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
+        }
+
+        async function downloadAll() {
+            showStatus('Downloading all icons...', 'success');
+            
+            for (const size of iconSizes) {
+                await new Promise(resolve => {
+                    downloadIcon(size);
+                    setTimeout(resolve, 300); // Small delay between downloads
+                });
+            }
+            
+            showStatus('✅ All icons downloaded! Save them to your project root folder.', 'success');
+        }
+    </script>
+</body>
+</html>

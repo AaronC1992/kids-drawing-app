@@ -1,11 +1,17 @@
 // Service Worker for Kids Drawing App PWA
-const CACHE_NAME = 'kids-drawing-app-v1';
+const CACHE_NAME = 'kids-drawing-app-v2';
 const urlsToCache = [
   './index.html',
   './styles.css',
   './app.js',
   './manifest.json',
+  './icon-72.png',
+  './icon-96.png',
+  './icon-128.png',
+  './icon-144.png',
+  './icon-152.png',
   './icon-192.png',
+  './icon-384.png',
   './icon-512.png'
 ];
 
