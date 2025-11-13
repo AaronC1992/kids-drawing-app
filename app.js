@@ -696,9 +696,6 @@
             // Finalize stroke recording
             if (window.Replay && window.Replay.isRecording) {
                 window.Replay.endStroke();
-                if (window.Achievements) {
-                    window.Achievements.onStrokeComplete(window.Replay.lastStrokeMeta());
-                }
             }
         }
     }
@@ -4416,10 +4413,7 @@ function toggleCategory(categoryId) {
 document.addEventListener('DOMContentLoaded', () => {
     const app = new KidsDrawingApp();
     window.appInstance = app;
-    // Initialize extras
     if (window.DailyUnlock) window.DailyUnlock.init();
-    if (window.Challenges) window.Challenges.init(app);
-    if (window.Achievements) window.Achievements.init();
     if (window.Replay) window.Replay.init(app);
     if (window.Analytics) window.Analytics.init();
     if (window.GifExport) window.GifExport.init();
