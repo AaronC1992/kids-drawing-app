@@ -151,6 +151,13 @@ android {
         
     }
     // Conditional signing: only applied when keystore properties are provided locally (not committed).
+    // Load optional local signing properties from a file ignored by Git.
+    def signingPropsFile = rootProject.file('local-signing.properties')
+    if (signingPropsFile.exists()) {
+        def Properties sp = new Properties()
+        signingPropsFile.withInputStream { sp.load(it) }
+        sp.each { k, v -> if (!project.hasProperty(k)) project.ext.set(k, v) }
+    }
     def hasSigning = project.hasProperty('KEYSTORE_FILE') && project.hasProperty('KEYSTORE_PASSWORD') && project.hasProperty('KEY_ALIAS') && project.hasProperty('KEY_PASSWORD')
     if (hasSigning) {
         signingConfigs {
