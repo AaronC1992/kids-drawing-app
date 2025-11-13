@@ -21,18 +21,18 @@ plugins {
 }
 
 def twaManifest = [
-    applicationId: 'com.github.twa',
-    hostName: 'github.com', // The domain being opened in the TWA.
-    launchUrl: '/', // The start path for the TWA. Must be relative to the domain.
+    applicationId: 'com.aaronc.kidsdrawingapp',
+    hostName: 'aaronc1992.github.io', // GitHub Pages domain
+    launchUrl: '/kids-drawing-app/', // Path to app root
     name: 'Kids Drawing App', // The application name.
-    launcherName: 'KidsDraw', // The name shown on the Android Launcher.
-    themeColor: '#FFFFFF', // The color used for the status bar.
-    themeColorDark: '#000000', // The color used for the dark status bar.
-    navigationColor: '#000000', // The color used for the navigation bar.
-    navigationColorDark: '#000000', // The color used for the dark navbar.
-    navigationDividerColor: '#000000', // The navbar divider color.
-    navigationDividerColorDark: '#000000', // The dark navbar divider color.
-    backgroundColor: '#FFFFFF', // The color used for the splash screen background.
+    launcherName: 'Kids Drawing', // Name on launcher
+    themeColor: '#FF69B4', // Match PWA theme_color
+    themeColorDark: '#000000',
+    navigationColor: '#FF69B4',
+    navigationColorDark: '#000000',
+    navigationDividerColor: '#00000000',
+    navigationDividerColorDark: '#00000000',
+    backgroundColor: '#FFE5F0', // Match PWA background_color
     enableNotifications: true, // Set to true to enable notification delegation.
     // Every shortcut must include the following fields:
     // - name: String that will show up in the shortcut.
@@ -52,9 +52,9 @@ def twaManifest = [
 
 android {
     compileSdkVersion 36
-    namespace "com.github.twa"
+    namespace "com.aaronc.kidsdrawingapp"
     defaultConfig {
-        applicationId "com.github.twa"
+        applicationId "com.aaronc.kidsdrawingapp"
         minSdkVersion 23
         targetSdkVersion 35
         versionCode 1
@@ -76,12 +76,12 @@ android {
             // The URL the Web Manifest for the Progressive Web App that the TWA points to. This
             // is used by Chrome OS and Meta Quest to open the Web version of the PWA instead of
             // the TWA, as it will probably give a better user experience for non-mobile devices.
-            resValue "string", "webManifestUrl", 'https://github.com/manifest.json'
+            resValue "string", "webManifestUrl", 'https://aaronc1992.github.io/kids-drawing-app/manifest.json'
         
 
         
             // This is used by Meta Quest.
-            resValue "string", "fullScopeUrl", 'https://github.com/'
+            resValue "string", "fullScopeUrl", 'https://aaronc1992.github.io/kids-drawing-app/'
         
 
         
@@ -150,11 +150,28 @@ android {
 
         
     }
+    // Conditional signing: only applied when keystore properties are provided locally (not committed).
+    def hasSigning = project.hasProperty('KEYSTORE_FILE') && project.hasProperty('KEYSTORE_PASSWORD') && project.hasProperty('KEY_ALIAS') && project.hasProperty('KEY_PASSWORD')
+    if (hasSigning) {
+        signingConfigs {
+            release {
+                storeFile file(project.property('KEYSTORE_FILE'))
+                storePassword project.property('KEYSTORE_PASSWORD')
+                keyAlias project.property('KEY_ALIAS')
+                keyPassword project.property('KEY_PASSWORD')
+            }
+        }
+    }
     buildTypes {
         release {
             minifyEnabled true
-            // To avoid build failure while fixing keystore password, disable signing here.
-            // Re-enable with a signingConfig once the correct keystore credentials are confirmed.
+            shrinkResources false
+            if (hasSigning) {
+                signingConfig signingConfigs.release
+            }
+        }
+        debug {
+            minifyEnabled false
         }
     }
     compileOptions {
