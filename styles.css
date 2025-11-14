@@ -17,7 +17,10 @@ body {
     background-size: 300% 300%;
     animation: rainbowGradient 6s ease infinite;
     height: 100vh;
+    width: 100vw;
     overflow: hidden; /* prevent page scroll; dropdowns are fixed */
+    margin: 0;
+    padding: 0;
 }
 
 @keyframes rainbowGradient {
@@ -39,8 +42,10 @@ body {
     display: flex;
     flex-direction: column;
     height: 100vh;
+    width: 100vw;
     overflow: hidden;
     padding: 0;
+    margin: 0;
 }
 
 .toolbar {
@@ -621,12 +626,13 @@ body {
     width: 100%;
     height: 100vh;
     padding: 0;
+    margin: 0;
     background: linear-gradient(135deg, #FFE4E1, #E0FFFF, #F0FFF0, #FFFACD);
     background-size: 200% 200%;
     animation: containerGlow 6s ease infinite;
-    border-radius: 25px;
-    border: 5px solid #FF69B4;
-    box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3);
+    border-radius: 0;
+    border: none;
+    box-shadow: none;
 }
 
 /* Brush section positioning */
@@ -691,10 +697,12 @@ body {
 
 #drawingCanvas {
     position: absolute;
-    top: 80px; /* reserve space for fixed toolbar */
-    left: 0;
-    right: 0;
-    bottom: 0;
+    top: 85px; /* reserve space for fixed toolbar */
+    left: 10px;
+    right: 10px;
+    bottom: 10px;
+    width: calc(100% - 20px);
+    height: calc(100% - 95px);
     border-radius: 20px;
     cursor: crosshair;
     background: white;
@@ -1174,13 +1182,13 @@ body {
     }
     
     .container {
-        padding: 5px;
+        padding: 0;
     }
     
     .canvas-container {
-        padding: 10px;
-        border-radius: 20px;
-        border-width: 3px;
+        padding: 0;
+        border-radius: 0;
+        border-width: 0;
     }
     
     /* Mobile toolbar - horizontal scroll with visible scrollbar */
@@ -1271,11 +1279,12 @@ body {
     
     #drawingCanvas {
         border-radius: 15px;
-        top: 80px;
+        top: 85px;
+        left: 5px;
+        right: 5px;
+        bottom: 5px;
+        width: calc(100% - 10px);
         height: calc(100% - 90px);
-        left: 10px;
-        right: 10px;
-        width: calc(100% - 20px);
     }
     
     .sticker-panel,
@@ -1337,13 +1346,13 @@ body {
 
 @media (max-width: 480px) {
     .container {
-        padding: 3px;
+        padding: 0;
     }
     
     .canvas-container {
-        padding: 8px;
-        border-radius: 15px;
-        border-width: 2px;
+        padding: 0;
+        border-radius: 0;
+        border-width: 0;
     }
     
     .toolbar {
@@ -1408,7 +1417,11 @@ body {
     
     #drawingCanvas {
         top: 75px;
-        height: calc(100% - 85px);
+        left: 5px;
+        right: 5px;
+        bottom: 5px;
+        width: calc(100% - 10px);
+        height: calc(100% - 80px);
     }
     
     .toolbar-scroll-hint {

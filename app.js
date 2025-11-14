@@ -131,8 +131,10 @@
     resizeCanvas() {
         const container = this.canvas.parentElement;
         const rect = container.getBoundingClientRect();
-        const availableWidth = rect.width - 40;
-        const availableHeight = window.innerHeight - 200;
+        const toolbar = document.querySelector('.toolbar');
+        const toolbarHeight = toolbar ? toolbar.offsetHeight : 80;
+        const availableWidth = rect.width - 20;
+        const availableHeight = window.innerHeight - toolbarHeight - 20;
         
         // Store base dimensions if not already set
         if (this.mainCanvasBaseWidth === 0) {
