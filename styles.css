@@ -1326,11 +1326,12 @@ body {
     }
     
     .toolbar {
-        padding: 6px;
+        padding: 8px 6px;
         gap: 8px;
-        min-height: 65px;
+        min-height: 80px;
         /* Keep horizontal scroll on small screens */
         overflow-x: scroll;
+        -webkit-overflow-scrolling: touch;
     }
     
     .tool-category {
@@ -1387,11 +1388,12 @@ body {
     
     #drawingCanvas {
         border-radius: 13px;
-        top: 75px;
+        top: 90px;
         left: 5px;
         right: 5px;
+        bottom: 5px;
         width: calc(100% - 10px);
-        height: calc(100% - 80px);
+        height: calc(100% - 95px);
     }
     
     .toolbar-scroll-hint {
@@ -1468,6 +1470,47 @@ body {
         font-size: 16px;
         top: 8px;
         right: 8px;
+    }
+
+    /* Landscape orientation fixes for mobile */
+    @media (orientation: landscape) and (max-height: 600px) {
+        .toolbar {
+            min-height: 60px;
+            padding: 6px;
+            gap: 8px;
+        }
+        
+        .tool-category {
+            min-width: 95px;
+            padding: 6px;
+        }
+        
+        .category-header h4 {
+            font-size: 11px;
+        }
+        
+        .tool-btn {
+            padding: 6px 10px;
+            font-size: 10px;
+            min-width: 110px;
+        }
+        
+        #drawingCanvas {
+            top: 70px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            width: calc(100% - 10px);
+            height: calc(100% - 75px);
+        }
+        
+        .brush-inline {
+            min-width: 120px;
+        }
+        
+        #brushSize {
+            width: 50px;
+        }
     }
 }
 
