@@ -16,7 +16,9 @@ body {
     background: linear-gradient(45deg, #FFB6C1, #87CEEB, #98FB98, #F0E68C, #DDA0DD, #F4A460);
     background-size: 300% 300%;
     animation: rainbowGradient 6s ease infinite;
-    height: 100vh;
+    /* Use dynamic viewport to avoid mobile browser UI gaps */
+    height: 100dvh;
+    min-height: 100vh; /* fallback */
     width: 100vw;
     overflow: hidden; /* prevent page scroll; dropdowns are fixed */
     margin: 0;
@@ -41,7 +43,8 @@ body {
 .container {
     display: flex;
     flex-direction: column;
-    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh; /* fallback */
     width: 100vw;
     overflow: hidden;
     padding: 0;
@@ -624,7 +627,8 @@ body {
     display: flex;
     flex-direction: column;
     width: 100%;
-    height: 100vh;
+    height: 100dvh;
+    min-height: 100vh; /* fallback */
     padding: 0;
     margin: 0;
     background: linear-gradient(135deg, #FFE4E1, #E0FFFF, #F0FFF0, #FFFACD);
@@ -1416,10 +1420,10 @@ body {
     }
     
     #drawingCanvas {
+        border-radius: 13px;
         top: 75px;
         left: 5px;
         right: 5px;
-        bottom: 5px;
         width: calc(100% - 10px);
         height: calc(100% - 80px);
     }
@@ -1450,14 +1454,7 @@ body {
         padding: 2px 5px;
     }
     
-    #drawingCanvas {
-        border-radius: 13px;
-        top: 80px;
-        height: calc(100% - 100px);
-        left: 8px;
-        right: 8px;
-        width: calc(100% - 16px);
-    }
+    /* Removed duplicate #drawingCanvas rules to avoid conflicts */
     
     .sticker-panel,
     .coloring-panel {
