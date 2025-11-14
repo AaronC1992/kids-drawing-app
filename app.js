@@ -1400,20 +1400,56 @@
         this.magnifierCanvas = magnifierCanvas;
         this.magnifierCtx = magnifierCanvas.getContext('2d');
         
-        // Add drag handlers
-        let isDragging = false;
+        // Add handlers for drawing and dragging
+        let isDraggingMagnifier = false;
+        let isDrawingInMagnifier = false;
         let dragOffsetX = 0;
         let dragOffsetY = 0;
         
         magnifierCanvas.addEventListener('mousedown', (e) => {
-            isDragging = true;
             const rect = magnifierCanvas.getBoundingClientRect();
-            dragOffsetX = e.clientX - rect.left - this.magnifierRadius - 10;
-            dragOffsetY = e.clientY - rect.top - this.magnifierRadius - 10;
+            const localX = e.clientX - rect.left;
+            const localY = e.clientY - rect.top;
+            const centerX = this.magnifierRadius + 10;
+            const centerY = this.magnifierRadius + 10;
+            
+            // Check if click is inside the magnifier circle
+            const distanceFromCenter = Math.sqrt(
+                Math.pow(localX - centerX, 2) + Math.pow(localY - centerY, 2)
+            );
+            
+            if (distanceFromCenter <= this.magnifierRadius) {
+                // Click inside circle - start drawing
+                isDrawingInMagnifier = true;
+                const canvasCoords = this.magnifierToCanvasCoords(localX, localY);
+                this.startDrawingAtCoords(canvasCoords.x, canvasCoords.y);
+            } else {
+                // Click outside circle - drag magnifier
+                isDraggingMagnifier = true;
+                dragOffsetX = e.clientX - rect.left - this.magnifierRadius - 10;
+                dragOffsetY = e.clientY - rect.top - this.magnifierRadius - 10;
+            }
+        });
+        
+        magnifierCanvas.addEventListener('mousemove', (e) => {
+            if (isDrawingInMagnifier) {
+                const rect = magnifierCanvas.getBoundingClientRect();
+                const localX = e.clientX - rect.left;
+                const localY = e.clientY - rect.top;
+                const canvasCoords = this.magnifierToCanvasCoords(localX, localY);
+                this.drawAtCoords(canvasCoords.x, canvasCoords.y);
+            }
+        });
+        
+        magnifierCanvas.addEventListener('mouseup', () => {
+            if (isDrawingInMagnifier) {
+                this.stopDrawing();
+                isDrawingInMagnifier = false;
+            }
         });
         
         document.addEventListener('mousemove', (e) => {
-            if (isDragging && this.magnifierActive) {
+            if (isDraggingMagnifier && this.magnifierActive) {
                 const canvasRect = this.canvas.getBoundingClientRect();
                 const scaleX = this.canvas.width / canvasRect.width;
                 const scaleY = this.canvas.height / canvasRect.height;
@@ -1430,22 +1466,47 @@
         });
         
         document.addEventListener('mouseup', () => {
-            isDragging = false;
+            isDraggingMagnifier = false;
         });
         
         // Touch support
         magnifierCanvas.addEventListener('touchstart', (e) => {
             e.preventDefault();
-            isDragging = true;
             const touch = e.touches[0];
             const rect = magnifierCanvas.getBoundingClientRect();
-            dragOffsetX = touch.clientX - rect.left - this.magnifierRadius - 10;
-            dragOffsetY = touch.clientY - rect.top - this.magnifierRadius - 10;
+            const localX = touch.clientX - rect.left;
+            const localY = touch.clientY - rect.top;
+            const centerX = this.magnifierRadius + 10;
+            const centerY = this.magnifierRadius + 10;
+            
+            // Check if touch is inside the magnifier circle
+            const distanceFromCenter = Math.sqrt(
+                Math.pow(localX - centerX, 2) + Math.pow(localY - centerY, 2)
+            );
+            
+            if (distanceFromCenter <= this.magnifierRadius) {
+                // Touch inside circle - start drawing
+                isDrawingInMagnifier = true;
+                const canvasCoords = this.magnifierToCanvasCoords(localX, localY);
+                this.startDrawingAtCoords(canvasCoords.x, canvasCoords.y);
+            } else {
+                // Touch outside circle - drag magnifier
+                isDraggingMagnifier = true;
+                dragOffsetX = touch.clientX - rect.left - this.magnifierRadius - 10;
+                dragOffsetY = touch.clientY - rect.top - this.magnifierRadius - 10;
+            }
         });
         
         document.addEventListener('touchmove', (e) => {
-            if (isDragging && this.magnifierActive) {
-                const touch = e.touches[0];
+            const touch = e.touches[0];
+            
+            if (isDrawingInMagnifier) {
+                const rect = magnifierCanvas.getBoundingClientRect();
+                const localX = touch.clientX - rect.left;
+                const localY = touch.clientY - rect.top;
+                const canvasCoords = this.magnifierToCanvasCoords(localX, localY);
+                this.drawAtCoords(canvasCoords.x, canvasCoords.y);
+            } else if (isDraggingMagnifier && this.magnifierActive) {
                 const canvasRect = this.canvas.getBoundingClientRect();
                 const scaleX = this.canvas.width / canvasRect.width;
                 const scaleY = this.canvas.height / canvasRect.height;
@@ -1462,7 +1523,11 @@
         });
         
         document.addEventListener('touchend', () => {
-            isDragging = false;
+            if (isDrawingInMagnifier) {
+                this.stopDrawing();
+                isDrawingInMagnifier = false;
+            }
+            isDraggingMagnifier = false;
         });
     }
     
@@ -1532,6 +1597,76 @@
         if (this.magnifierAnimationRunning) {
             requestAnimationFrame(() => this.renderMagnifier());
         }
+    }
+    
+    magnifierToCanvasCoords(localX, localY) {
+        // Convert magnifier canvas coordinates to main canvas coordinates
+        const centerX = this.magnifierRadius + 10;
+        const centerY = this.magnifierRadius + 10;
+        
+        // Get offset from center of magnifier
+        const offsetX = localX - centerX;
+        const offsetY = localY - centerY;
+        
+        // Scale by zoom level (inverse)
+        const sourceSize = this.magnifierRadius / this.magnifierZoom;
+        const scaleFactor = sourceSize / this.magnifierRadius;
+        
+        // Convert to canvas coordinates
+        const canvasX = this.magnifierX + (offsetX * scaleFactor);
+        const canvasY = this.magnifierY + (offsetY * scaleFactor);
+        
+        return { x: canvasX, y: canvasY };
+    }
+    
+    startDrawingAtCoords(x, y) {
+        // Start drawing at specific canvas coordinates
+        this.isDrawing = true;
+        this.lastPoint = { x, y };
+        
+        if (this.currentTool === 'brush') {
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.ctx.strokeStyle = this.getCurrentColor();
+            this.ctx.lineWidth = this.brushSize;
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, y);
+        } else if (this.currentTool === 'eraser') {
+            // Eraser setup
+            this.drawEraser(x, y);
+        } else if (this.currentTool === 'neon') {
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.ctx.lineWidth = this.brushSize;
+            this.ctx.lineCap = 'round';
+            this.ctx.lineJoin = 'round';
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, y);
+            this.neonWhitePoints = null;
+        }
+        // Add other tools as needed
+    }
+    
+    drawAtCoords(x, y) {
+        if (!this.isDrawing) return;
+        
+        if (this.currentTool === 'brush') {
+            if (this.isRainbowMode) {
+                this.ctx.strokeStyle = this.getCurrentColor();
+                this.ctx.beginPath();
+                this.ctx.moveTo(this.lastPoint.x, this.lastPoint.y);
+                this.ctx.lineTo(x, y);
+                this.ctx.stroke();
+            } else {
+                this.ctx.lineTo(x, y);
+                this.ctx.stroke();
+            }
+        } else if (this.currentTool === 'eraser') {
+            this.drawEraser(x, y);
+        } else if (this.currentTool === 'neon') {
+            this.drawNeon(x, y);
+        }
+        // Add other tools as needed
+        
+        this.lastPoint = { x, y };
     }
 
     async renderPdfPage() {}
