@@ -182,14 +182,13 @@ android {
         }
     }
     compileOptions {
-        // Raise Java compatibility to 11 to silence JDK 21 deprecation warnings for source/target 8.
-        sourceCompatibility JavaVersion.VERSION_11
-        targetCompatibility JavaVersion.VERSION_11
+        sourceCompatibility JavaVersion.VERSION_21
+        targetCompatibility JavaVersion.VERSION_21
     }
     // Use Java toolchain to ensure consistent JDK for compilation (Gradle will download if needed).
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(17)
+            languageVersion = JavaLanguageVersion.of(21)
         }
     }
     lintOptions {
