@@ -298,6 +298,18 @@ body {
     touch-action: manipulation; /* Prevent double-tap zoom */
 }
 
+/* Magnifier button compact sizing - override width for toolbar button */
+#magnifierTool {
+    width: auto;
+    min-width: 44px;
+    max-width: 60px;
+    text-align: center;
+    padding: 10px 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .rainbow-color {
     background: linear-gradient(45deg, #ff0000, #ff8800, #ffff00, #88ff00, #00ff00, #00ff88, #00ffff, #0088ff, #0000ff, #8800ff, #ff00ff, #ff0088);
     background-size: 200% 200%;

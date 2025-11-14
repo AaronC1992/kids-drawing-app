@@ -1302,7 +1302,8 @@
         if (this.magnifierActive) {
             // Activate magnifier
             if (magnifierTool) magnifierTool.classList.add('active');
-            this.canvas.style.cursor = 'none'; // Hide cursor when magnifier is active
+            // Keep crosshair visible initially; we'll hide only while directly over magnifier
+            this.canvas.style.cursor = 'crosshair';
             
             // Position magnifier in center initially
             this.magnifierX = this.canvas.width / 2;
@@ -1428,6 +1429,18 @@
                 isDraggingMagnifier = true;
                 dragOffsetX = e.clientX - rect.left - this.magnifierRadius - 10;
                 dragOffsetY = e.clientY - rect.top - this.magnifierRadius - 10;
+            }
+        });
+
+        // Cursor visibility management: hide base canvas cursor only while over magnifier surface
+        magnifierCanvas.addEventListener('mouseenter', () => {
+            if (this.magnifierActive) {
+                this.canvas.style.cursor = 'none';
+            }
+        });
+        magnifierCanvas.addEventListener('mouseleave', () => {
+            if (this.magnifierActive) {
+                this.canvas.style.cursor = 'crosshair';
             }
         });
         
@@ -1629,19 +1642,39 @@
     }
     
     startDrawingAtCoords(x, y) {
-        // Start drawing at specific canvas coordinates
+        // Start drawing at specific canvas coordinates (for magnifier)
+        // Initialize train track when starting to draw
+        if (this.currentTool === 'train-track') {
+            this.trainTracks = this.trainTracks || [];
+            this.trains = this.trains || [];
+            this.currentTrack = [];
+        }
+
         this.isDrawing = true;
         this.lastPoint = { x, y };
-        
+
+        // Start replay stroke if recording
+        if (window.Replay && window.Replay.isRecording) {
+            window.Replay.startStroke({
+                tool: this.currentTool,
+                color: this.getCurrentColor(),
+                size: this.brushSize,
+                start: { x, y }
+            });
+        }
+
         if (this.currentTool === 'brush') {
             this.ctx.globalCompositeOperation = 'source-over';
             this.ctx.strokeStyle = this.getCurrentColor();
             this.ctx.lineWidth = this.brushSize;
             this.ctx.beginPath();
             this.ctx.moveTo(x, y);
-        } else if (this.currentTool === 'eraser') {
-            // Eraser setup
-            this.drawEraser(x, y);
+        } else if (this.currentTool === 'fireworks') {
+            this.drawFireworks(x, y);
+        } else if (this.currentTool === 'spray') {
+            this.drawSpray(x, y);
+        } else if (this.currentTool === 'fill') {
+            this.floodFill(x, y);
         } else if (this.currentTool === 'neon') {
             this.ctx.globalCompositeOperation = 'source-over';
             this.ctx.lineWidth = this.brushSize;
@@ -1650,13 +1683,63 @@
             this.ctx.beginPath();
             this.ctx.moveTo(x, y);
             this.neonWhitePoints = null;
+        } else if (this.currentTool === 'wobbly-crayon') {
+            this.currentWigglyLine = null;
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.ctx.strokeStyle = this.getCurrentColor();
+            this.ctx.lineWidth = this.brushSize;
+            this.ctx.lineCap = 'round';
+            this.ctx.beginPath();
+            this.ctx.moveTo(x, y);
+        } else if (this.currentTool === 'smudge') {
+            this.startSmudging(x, y);
+        } else if (this.currentTool === 'blend') {
+            this.startBlending(x, y);
+        } else if (this.currentTool === 'train-track') {
+            this.drawTrainTrack(x, y);
+        } else if (this.currentTool === 'leaf-trail') {
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.lastLeafTime = 0;
+        } else if (this.currentTool === 'flower-chain') {
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.lastFlowerTime = 0;
+            this.flowers = this.flowers || [];
+        } else if (this.currentTool === 'grass-stamper') {
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.lastGrassTime = 0;
+            this.grassBlades = this.grassBlades || [];
+        } else if (this.currentTool === 'blocky-builder') {
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.blockSize = Math.max(4, this.brushSize * 0.8);
+            this.lastBlockX = null;
+            this.lastBlockY = null;
+            const gridX = Math.floor(x / this.blockSize) * this.blockSize;
+            const gridY = Math.floor(y / this.blockSize) * this.blockSize;
+            this.drawSingleBlock(gridX, gridY);
+            this.lastBlockX = gridX;
+            this.lastBlockY = gridY;
+        } else if (this.currentTool === 'mirror-painting') {
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.ctx.strokeStyle = this.getCurrentColor();
+            this.ctx.lineWidth = this.brushSize;
+            this.ctx.lineCap = 'round';
+            this.ctx.lineJoin = 'round';
+            this.mirrorSections = 8;
+            this.centerX = this.canvas.width / 2;
+            this.centerY = this.canvas.height / 2;
+            for (let i = 0; i < this.mirrorSections; i++) {
+                this.ctx.beginPath();
+                const mirrorPoint = this.getMirrorPoint(x, y, i);
+                this.ctx.moveTo(mirrorPoint.x, mirrorPoint.y);
+            }
+        } else if (this.currentTool === 'eraser') {
+            this.drawEraser(x, y);
         }
-        // Add other tools as needed
     }
     
     drawAtCoords(x, y) {
         if (!this.isDrawing) return;
-        
+
         if (this.currentTool === 'brush') {
             if (this.isRainbowMode) {
                 this.ctx.strokeStyle = this.getCurrentColor();
@@ -1670,11 +1753,51 @@
             }
         } else if (this.currentTool === 'eraser') {
             this.drawEraser(x, y);
+        } else if (this.currentTool === 'fireworks') {
+            this.drawFireworks(x, y);
+        } else if (this.currentTool === 'spray') {
+            this.drawSpray(x, y);
+        } else if (this.currentTool === 'glitter') {
+            this.drawGlitter(x, y);
         } else if (this.currentTool === 'neon') {
             this.drawNeon(x, y);
+        } else if (this.currentTool === 'bubble') {
+            this.drawBubbles(x, y);
+        } else if (this.currentTool === 'confetti') {
+            this.drawConfetti(x, y);
+        } else if (this.currentTool === 'sparkles') {
+            this.drawColorfulWorms(x, y);
+        } else if (this.currentTool === 'lightning') {
+            this.drawLightning(x, y);
+        } else if (this.currentTool === 'bugs') {
+            this.drawBugs(x, y);
+        } else if (this.currentTool === 'streamers') {
+            this.drawStreamers(x, y);
+        } else if (this.currentTool === 'wobbly-crayon') {
+            this.drawWobblyCrayon(x, y);
+        } else if (this.currentTool === 'smudge') {
+            this.drawSmudge(x, y);
+        } else if (this.currentTool === 'blend') {
+            this.drawBlend(x, y);
+        } else if (this.currentTool === 'train-track') {
+            this.drawTrainTrack(x, y);
+        } else if (this.currentTool === 'leaf-trail') {
+            this.drawLeafTrail(x, y);
+        } else if (this.currentTool === 'flower-chain') {
+            this.drawFlowerChain(x, y);
+        } else if (this.currentTool === 'grass-stamper') {
+            this.drawGrassStamper(x, y);
+        } else if (this.currentTool === 'blocky-builder') {
+            this.drawBlockyBuilder(x, y);
+        } else if (this.currentTool === 'mirror-painting') {
+            this.drawMirrorPainting(x, y);
         }
-        // Add other tools as needed
-        
+
+        // Record for replay if active
+        if (window.Replay && window.Replay.isRecording && window.Replay.currentStroke) {
+            window.Replay.addPoint(x, y);
+        }
+
         this.lastPoint = { x, y };
     }
 
