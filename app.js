@@ -1574,6 +1574,15 @@
             10, 10, radius * 2, radius * 2
         );
         
+        // Also draw overlay canvas content (trains, particles, etc.)
+        if (this.overlayCanvas) {
+            ctx.drawImage(
+                this.overlayCanvas,
+                sourceX, sourceY, sourceWidth, sourceHeight,
+                10, 10, radius * 2, radius * 2
+            );
+        }
+        
         ctx.restore();
         
         // Draw magnifier border
