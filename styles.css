@@ -657,48 +657,6 @@ body {
     font-weight: bold;
 }
 
-/* Toolbar zoom controls */
-.toolbar-zoom-controls {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: linear-gradient(135deg, #FFB6C1, #E6E6FA);
-    border: 3px solid #FF69B4;
-    border-radius: 20px;
-    padding: 8px 12px;
-    box-shadow: 0 5px 15px rgba(255, 105, 180, 0.2);
-    margin-left: 10px;
-}
-
-.toolbar-zoom-controls .zoom-label {
-    font-size: 14px;
-    color: #8B008B;
-    font-weight: bold;
-    margin-right: 5px;
-}
-
-.toolbar-zoom-controls .zoom-btn {
-    background: rgba(255, 105, 180, 0.8);
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 44px; /* Increased from 30px for better touch targets */
-    height: 44px;
-    font-size: 18px; /* Slightly larger */
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    touch-action: manipulation; /* Prevent double-tap zoom */
-}
-
-.toolbar-zoom-controls .zoom-btn:hover {
-    background: rgba(255, 105, 180, 1);
-    transform: scale(1.1);
-}
-
 #drawingCanvas {
     position: absolute;
     top: 85px; /* reserve space for fixed toolbar */
@@ -1275,10 +1233,6 @@ body {
     #brushSizeValue {
         font-size: 12px;
         padding: 3px 6px;
-    }
-    
-    .toolbar-zoom-controls {
-        min-width: 120px;
     }
     
     #drawingCanvas {

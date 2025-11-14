@@ -20,10 +20,13 @@
         this.rainbowHue = 0; // Add rainbow hue tracker
         this.isRainbowMode = false; // Track if rainbow color is selected
         
-        // Main canvas zoom variables
-        this.mainZoomLevel = 1.0;
-        this.mainCanvasBaseWidth = 0;
-        this.mainCanvasBaseHeight = 0;
+        // Magnifier properties
+        this.magnifierActive = false;
+        this.magnifierX = 0;
+        this.magnifierY = 0;
+        this.magnifierRadius = 100;
+        this.magnifierZoom = 2.0;
+        this.magnifierDragging = false;
         
         // Sticker properties
         this.stickerMode = false;
@@ -136,20 +139,14 @@
         const availableWidth = rect.width - 20;
         const availableHeight = window.innerHeight - toolbarHeight - 20;
         
-        // Store base dimensions if not already set
-        if (this.mainCanvasBaseWidth === 0) {
-            this.mainCanvasBaseWidth = Math.max(300, availableWidth);
-            this.mainCanvasBaseHeight = Math.max(200, availableHeight);
-        }
-        
         // Save current drawing before resize (resizing clears the canvas)
         const currentDrawing = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
         const oldWidth = this.canvas.width;
         const oldHeight = this.canvas.height;
         
-        // Apply zoom to dimensions
-        this.canvas.width = this.mainCanvasBaseWidth * this.mainZoomLevel;
-        this.canvas.height = this.mainCanvasBaseHeight * this.mainZoomLevel;
+        // Set canvas to full available size
+        this.canvas.width = Math.max(300, availableWidth);
+        this.canvas.height = Math.max(200, availableHeight);
         
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
@@ -348,19 +345,12 @@
         this.canvas.addEventListener('touchmove', (e) => this.handleTouch(e));
         this.canvas.addEventListener('touchend', () => this.stopDrawing());
 
-        // Toolbar zoom controls (universal - works for both main canvas and PDF)
-        const toolbarZoomIn = document.getElementById('toolbarZoomIn');
-        const toolbarZoomOut = document.getElementById('toolbarZoomOut');
-        
-        if (toolbarZoomIn) {
-            toolbarZoomIn.addEventListener('click', () => {
-                this.zoomMainCanvas(1.2);
-            });
-        }
-        
-        if (toolbarZoomOut) {
-            toolbarZoomOut.addEventListener('click', () => {
-                this.zoomMainCanvas(0.8);
+        // Magnifying glass tool
+        const magnifierTool = document.getElementById('magnifierTool');
+        if (magnifierTool) {
+            magnifierTool.addEventListener('click', () => {
+                this.toggleMagnifier();
+                this.closeAllCategories();
             });
         }
 
@@ -1305,33 +1295,243 @@
     
     updateZoomDisplay() {}
 
-    zoomMainCanvas(factor) {
-        this.mainZoomLevel *= factor;
+    toggleMagnifier() {
+        this.magnifierActive = !this.magnifierActive;
         
-        // Limit zoom levels
-        if (this.mainZoomLevel < 0.5) this.mainZoomLevel = 0.5;
-        if (this.mainZoomLevel > 3.0) this.mainZoomLevel = 3.0;
+        const magnifierTool = document.getElementById('magnifierTool');
+        if (this.magnifierActive) {
+            // Activate magnifier
+            if (magnifierTool) magnifierTool.classList.add('active');
+            this.canvas.style.cursor = 'none'; // Hide cursor when magnifier is active
+            
+            // Position magnifier in center initially
+            this.magnifierX = this.canvas.width / 2;
+            this.magnifierY = this.canvas.height / 2;
+            
+            // Create magnifier UI if it doesn't exist
+            if (!this.magnifierUI) {
+                this.createMagnifierUI();
+            }
+            this.magnifierUI.style.display = 'block';
+            this.updateMagnifierPosition();
+            
+            // Start magnifier rendering
+            if (!this.magnifierAnimationRunning) {
+                this.magnifierAnimationRunning = true;
+                this.renderMagnifier();
+            }
+        } else {
+            // Deactivate magnifier
+            if (magnifierTool) magnifierTool.classList.remove('active');
+            this.canvas.style.cursor = 'crosshair';
+            
+            if (this.magnifierUI) {
+                this.magnifierUI.style.display = 'none';
+            }
+            this.magnifierAnimationRunning = false;
+        }
+    }
+    
+    createMagnifierUI() {
+        // Create magnifier overlay container
+        const container = document.createElement('div');
+        container.id = 'magnifierContainer';
+        container.style.cssText = `
+            position: fixed;
+            pointer-events: none;
+            z-index: 10000;
+            display: none;
+        `;
         
-        // Save current drawing content
-        const imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+        // Create magnifier circle canvas
+        const magnifierCanvas = document.createElement('canvas');
+        magnifierCanvas.width = this.magnifierRadius * 2 + 20; // Extra space for border
+        magnifierCanvas.height = this.magnifierRadius * 2 + 80; // Extra space for slider
+        magnifierCanvas.style.cssText = 'pointer-events: auto; cursor: move;';
         
-        // Resize canvas with new zoom level
-        this.resizeCanvas();
+        // Create zoom slider
+        const sliderContainer = document.createElement('div');
+        sliderContainer.style.cssText = `
+            position: absolute;
+            bottom: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 8px 12px;
+            border-radius: 20px;
+            border: 3px solid #FF69B4;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        `;
         
-        // Restore and scale the drawing content
-        const tempCanvas = document.createElement('canvas');
-        tempCanvas.width = imageData.width;
-        tempCanvas.height = imageData.height;
-        const tempCtx = tempCanvas.getContext('2d');
-        tempCtx.putImageData(imageData, 0, 0);
+        const zoomLabel = document.createElement('span');
+        zoomLabel.textContent = '🔍';
+        zoomLabel.style.cssText = 'font-size: 16px;';
         
-        // Clear canvas and draw scaled content
-        this.ctx.fillStyle = 'white';
-        this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        this.ctx.drawImage(tempCanvas, 0, 0, tempCanvas.width, tempCanvas.height, 0, 0, this.canvas.width, this.canvas.height);
+        const slider = document.createElement('input');
+        slider.type = 'range';
+        slider.min = '1.5';
+        slider.max = '5';
+        slider.step = '0.5';
+        slider.value = this.magnifierZoom.toString();
+        slider.style.cssText = 'width: 100px; cursor: pointer;';
         
-        // Also update overlay canvas
-        this.resizeOverlayCanvas();
+        const zoomValue = document.createElement('span');
+        zoomValue.textContent = this.magnifierZoom + 'x';
+        zoomValue.style.cssText = 'font-size: 12px; font-weight: bold; color: #8B008B; min-width: 30px;';
+        
+        slider.addEventListener('input', (e) => {
+            this.magnifierZoom = parseFloat(e.target.value);
+            zoomValue.textContent = this.magnifierZoom + 'x';
+        });
+        
+        sliderContainer.appendChild(zoomLabel);
+        sliderContainer.appendChild(slider);
+        sliderContainer.appendChild(zoomValue);
+        
+        container.appendChild(magnifierCanvas);
+        container.appendChild(sliderContainer);
+        document.body.appendChild(container);
+        
+        this.magnifierUI = container;
+        this.magnifierCanvas = magnifierCanvas;
+        this.magnifierCtx = magnifierCanvas.getContext('2d');
+        
+        // Add drag handlers
+        let isDragging = false;
+        let dragOffsetX = 0;
+        let dragOffsetY = 0;
+        
+        magnifierCanvas.addEventListener('mousedown', (e) => {
+            isDragging = true;
+            const rect = magnifierCanvas.getBoundingClientRect();
+            dragOffsetX = e.clientX - rect.left - this.magnifierRadius - 10;
+            dragOffsetY = e.clientY - rect.top - this.magnifierRadius - 10;
+        });
+        
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging && this.magnifierActive) {
+                const canvasRect = this.canvas.getBoundingClientRect();
+                const scaleX = this.canvas.width / canvasRect.width;
+                const scaleY = this.canvas.height / canvasRect.height;
+                
+                this.magnifierX = (e.clientX - canvasRect.left - dragOffsetX) * scaleX;
+                this.magnifierY = (e.clientY - canvasRect.top - dragOffsetY) * scaleY;
+                
+                // Clamp to canvas bounds
+                this.magnifierX = Math.max(this.magnifierRadius, Math.min(this.canvas.width - this.magnifierRadius, this.magnifierX));
+                this.magnifierY = Math.max(this.magnifierRadius, Math.min(this.canvas.height - this.magnifierRadius, this.magnifierY));
+                
+                this.updateMagnifierPosition();
+            }
+        });
+        
+        document.addEventListener('mouseup', () => {
+            isDragging = false;
+        });
+        
+        // Touch support
+        magnifierCanvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            isDragging = true;
+            const touch = e.touches[0];
+            const rect = magnifierCanvas.getBoundingClientRect();
+            dragOffsetX = touch.clientX - rect.left - this.magnifierRadius - 10;
+            dragOffsetY = touch.clientY - rect.top - this.magnifierRadius - 10;
+        });
+        
+        document.addEventListener('touchmove', (e) => {
+            if (isDragging && this.magnifierActive) {
+                const touch = e.touches[0];
+                const canvasRect = this.canvas.getBoundingClientRect();
+                const scaleX = this.canvas.width / canvasRect.width;
+                const scaleY = this.canvas.height / canvasRect.height;
+                
+                this.magnifierX = (touch.clientX - canvasRect.left - dragOffsetX) * scaleX;
+                this.magnifierY = (touch.clientY - canvasRect.top - dragOffsetY) * scaleY;
+                
+                // Clamp to canvas bounds
+                this.magnifierX = Math.max(this.magnifierRadius, Math.min(this.canvas.width - this.magnifierRadius, this.magnifierX));
+                this.magnifierY = Math.max(this.magnifierRadius, Math.min(this.canvas.height - this.magnifierRadius, this.magnifierY));
+                
+                this.updateMagnifierPosition();
+            }
+        });
+        
+        document.addEventListener('touchend', () => {
+            isDragging = false;
+        });
+    }
+    
+    updateMagnifierPosition() {
+        if (!this.magnifierUI) return;
+        
+        const canvasRect = this.canvas.getBoundingClientRect();
+        const scaleX = canvasRect.width / this.canvas.width;
+        const scaleY = canvasRect.height / this.canvas.height;
+        
+        const screenX = canvasRect.left + this.magnifierX * scaleX;
+        const screenY = canvasRect.top + this.magnifierY * scaleY;
+        
+        this.magnifierUI.style.left = (screenX - this.magnifierRadius - 10) + 'px';
+        this.magnifierUI.style.top = (screenY - this.magnifierRadius - 10) + 'px';
+    }
+    
+    renderMagnifier() {
+        if (!this.magnifierActive || !this.magnifierCtx) return;
+        
+        const ctx = this.magnifierCtx;
+        const radius = this.magnifierRadius;
+        
+        // Clear the magnifier canvas
+        ctx.clearRect(0, 0, this.magnifierCanvas.width, this.magnifierCanvas.height);
+        
+        // Draw circular clipping mask
+        ctx.save();
+        ctx.beginPath();
+        ctx.arc(radius + 10, radius + 10, radius, 0, Math.PI * 2);
+        ctx.clip();
+        
+        // Calculate source region
+        const sourceSize = radius / this.magnifierZoom;
+        const sourceX = this.magnifierX - sourceSize;
+        const sourceY = this.magnifierY - sourceSize;
+        const sourceWidth = sourceSize * 2;
+        const sourceHeight = sourceSize * 2;
+        
+        // Draw magnified content from main canvas
+        ctx.drawImage(
+            this.canvas,
+            sourceX, sourceY, sourceWidth, sourceHeight,
+            10, 10, radius * 2, radius * 2
+        );
+        
+        ctx.restore();
+        
+        // Draw magnifier border
+        ctx.strokeStyle = '#FF69B4';
+        ctx.lineWidth = 5;
+        ctx.beginPath();
+        ctx.arc(radius + 10, radius + 10, radius, 0, Math.PI * 2);
+        ctx.stroke();
+        
+        // Draw crosshair at center
+        ctx.strokeStyle = 'rgba(255, 105, 180, 0.6)';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(radius + 10 - 10, radius + 10);
+        ctx.lineTo(radius + 10 + 10, radius + 10);
+        ctx.moveTo(radius + 10, radius + 10 - 10);
+        ctx.lineTo(radius + 10, radius + 10 + 10);
+        ctx.stroke();
+        
+        // Continue animation
+        if (this.magnifierAnimationRunning) {
+            requestAnimationFrame(() => this.renderMagnifier());
+        }
     }
 
     async renderPdfPage() {}
