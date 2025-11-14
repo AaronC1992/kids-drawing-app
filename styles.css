@@ -1169,7 +1169,7 @@ body {
     .toolbar {
         padding: 8px;
         gap: 10px;
-        min-height: 70px;
+        min-height: 85px;
         background: linear-gradient(to bottom, rgba(255,255,255,0.95), rgba(255,255,255,0.85));
         box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         /* Ensure scrollbar is always visible on mobile */
@@ -1249,12 +1249,12 @@ body {
     
     #drawingCanvas {
         border-radius: 15px;
-        top: 85px;
+        top: 100px;
         left: 5px;
         right: 5px;
         bottom: 5px;
         width: calc(100% - 10px);
-        height: calc(100% - 90px);
+        height: calc(100% - 105px);
     }
     
     .sticker-panel,
@@ -1311,6 +1311,47 @@ body {
         font-size: 18px;
         top: 10px;
         right: 10px;
+    }
+
+    /* Landscape orientation fixes for mobile devices */
+    @media (orientation: landscape) and (max-height: 600px) {
+        .toolbar {
+            min-height: 65px;
+            padding: 6px;
+            gap: 8px;
+        }
+        
+        .tool-category {
+            min-width: 100px;
+            padding: 6px;
+        }
+        
+        .category-header h4 {
+            font-size: 11px;
+        }
+        
+        .tool-btn {
+            padding: 6px 10px;
+            font-size: 10px;
+            min-width: 115px;
+        }
+        
+        #drawingCanvas {
+            top: 75px;
+            left: 5px;
+            right: 5px;
+            bottom: 5px;
+            width: calc(100% - 10px);
+            height: calc(100% - 80px);
+        }
+        
+        .brush-inline {
+            min-width: 120px;
+        }
+        
+        #brushSize {
+            width: 50px;
+        }
     }
 }
 
