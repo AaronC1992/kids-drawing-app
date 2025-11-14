@@ -1,6 +1,6 @@
 # 🎨 Kids Drawing App
 
-🌐 **[Play Online](https://aaronc1992.github.io/kids-drawing-app/)** | 📱 **[Download Android App](https://github.com/AaronC1992/kids-drawing-app/raw/main/release-v1.1.3/kids-drawing-app-v1.1.3.apk)**
+🌐 **[Play Online](https://aaronc1992.github.io/kids-drawing-app/)** | 📱 **[Download Android App](https://github.com/AaronC1992/kids-drawing-app/raw/main/release-v1.1.4/kids-drawing-app-v1.1.4.apk)**
 
 A fun, interactive drawing application designed for kids with colorful effects, animated tools, and special brushes!
 
@@ -151,6 +151,20 @@ npx http-server -p 8000
 
 ### Issue: Toolbar looks plain/unstyled
 **Status**: ✅ FIXED - All CSS styling restored
+
+### Version 1.1.4.0 (Magnifier Improvements)
+**New / Improved:**
+- Full magnifier support for ALL drawing tools and effects
+- Overlay content (trains, particles, glitter, fireworks, etc.) visible inside magnifier
+- Magnifier button resized for consistent toolbar layout
+- Cursor now only hides while directly over magnifier (no more lost pointer)
+
+**Fixes:**
+- Cursor occasionally disappeared after leaving magnifier
+- Trains/effects missing inside magnified view
+- Button width mismatch in toolbar
+
+**Notes:** Minor internal refactors to unify drawing logic between normal canvas and magnifier.
 
 ## 🎯 Roadmap / Future Features
 
