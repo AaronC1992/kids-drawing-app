@@ -1,6 +1,6 @@
 # 🎨 Kids Drawing App
 
-🌐 **[Play Online](https://aaronc1992.github.io/kids-drawing-app/)** | 📱 **[Download Android App](https://github.com/AaronC1992/kids-drawing-app/raw/main/release-v1.1.4/kids-drawing-app-v1.1.4.apk)**
+🌐 **[Play Online](https://aaronc1992.github.io/kids-drawing-app/)** | 📱 **[Download Android App](https://github.com/AaronC1992/kids-drawing-app/raw/main/release-v1.1.4.1/kids-drawing-app-v1.1.4.1.apk)**
 
 A fun, interactive drawing application designed for kids with colorful effects, animated tools, and special brushes!
 
@@ -165,6 +165,15 @@ npx http-server -p 8000
 - Button width mismatch in toolbar
 
 **Notes:** Minor internal refactors to unify drawing logic between normal canvas and magnifier.
+
+### Version 1.1.4.1 (Mobile Layout Fix)
+**Fixes:**
+- Portrait mode: Increased toolbar visibility (80px height), adjusted canvas positioning to prevent overlap
+- Landscape mode: Fixed canvas centering and width - no more left-side shift, full screen drawing area
+- Added landscape-specific media query for optimal layout on phones in horizontal orientation
+- Improved touch scrolling for toolbar navigation
+
+**Notes:** PWA updates automatically. APK includes all v1.1.4.x improvements.
 
 ## 🎯 Roadmap / Future Features
 
