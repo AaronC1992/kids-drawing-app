@@ -72,6 +72,8 @@ body {
     /* Add scrollbar styling for better visibility */
     scrollbar-width: thin;
     scrollbar-color: #FF69B4 rgba(255,255,255,0.3);
+    /* Allow horizontal finger dragging for scroll */
+    touch-action: pan-x;
 }
 
 .toolbar::-webkit-scrollbar {

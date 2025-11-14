@@ -92,6 +92,11 @@
         window.addEventListener('resize', () => {
             this.resizeCanvas();
         });
+
+        // Ensure proper resize on device rotation
+        window.addEventListener('orientationchange', () => {
+            setTimeout(() => this.resizeCanvas(), 250);
+        });
     }
     
     setupOverlayCanvas() {
@@ -100,13 +105,13 @@
         
         // Position overlay canvas exactly over the main canvas
         this.overlayCanvas.style.position = 'absolute';
-    this.overlayCanvas.style.top = this.canvas.style.top || '80px';
-        this.overlayCanvas.style.left = this.canvas.style.left || '20px';
-        this.overlayCanvas.style.right = this.canvas.style.right || '20px';
-        this.overlayCanvas.style.bottom = this.canvas.style.bottom || '20px';
-        this.overlayCanvas.style.width = this.canvas.style.width || 'calc(100% - 40px)';
-        this.overlayCanvas.style.height = this.canvas.style.height || 'calc(100% - 100px)';
-        this.overlayCanvas.style.borderRadius = this.canvas.style.borderRadius || '20px';
+        // Use computed/layout values from the rendered canvas to align perfectly
+        const cs = window.getComputedStyle(this.canvas);
+        this.overlayCanvas.style.top = this.canvas.offsetTop + 'px';
+        this.overlayCanvas.style.left = this.canvas.offsetLeft + 'px';
+        this.overlayCanvas.style.width = this.canvas.clientWidth + 'px';
+        this.overlayCanvas.style.height = this.canvas.clientHeight + 'px';
+        this.overlayCanvas.style.borderRadius = cs.borderRadius || '20px';
         this.overlayCanvas.style.pointerEvents = 'none'; // Don't interfere with drawing
         this.overlayCanvas.style.zIndex = '1000'; // High z-index to ensure it's on top
         this.overlayCanvas.style.background = 'transparent'; // Ensure transparency
@@ -124,51 +129,60 @@
     
     resizeOverlayCanvas() {
         if (this.overlayCanvas && this.canvas) {
+            // Match drawing buffer sizes
             this.overlayCanvas.width = this.canvas.width;
             this.overlayCanvas.height = this.canvas.height;
-            this.overlayCanvas.style.width = this.canvas.style.width;
-            this.overlayCanvas.style.height = this.canvas.style.height;
+            // Match on-screen size and position exactly to the canvas
+            const cs = window.getComputedStyle(this.canvas);
+            this.overlayCanvas.style.top = this.canvas.offsetTop + 'px';
+            this.overlayCanvas.style.left = this.canvas.offsetLeft + 'px';
+            this.overlayCanvas.style.width = this.canvas.clientWidth + 'px';
+            this.overlayCanvas.style.height = this.canvas.clientHeight + 'px';
+            this.overlayCanvas.style.borderRadius = cs.borderRadius || '20px';
         }
     }
     
     resizeCanvas() {
-        const container = this.canvas.parentElement;
-        const rect = container.getBoundingClientRect();
         const toolbar = document.querySelector('.toolbar');
         const toolbarHeight = toolbar ? toolbar.offsetHeight : 80;
-        const availableWidth = rect.width - 20;
-        const availableHeight = window.innerHeight - toolbarHeight - 20;
+        const horizontalMargin = 10; // match CSS left/right 5px on mobile, 10px desktop
+        const verticalMarginBottom = 10; // match CSS bottom spacing
         
-        // Save current drawing before resize (resizing clears the canvas)
+        // Compute target CSS size directly from viewport (avoids calc(% - px) mismatches)
+        const targetWidth = Math.max(300, window.innerWidth - horizontalMargin * 2);
+        const targetHeight = Math.max(200, window.innerHeight - toolbarHeight - verticalMarginBottom - (toolbar ? 0 : 0));
+        
+        // Apply style dimensions so clientWidth/clientHeight reflect our layout
+        this.canvas.style.left = horizontalMargin + 'px';
+        this.canvas.style.top = (toolbarHeight + 15) + 'px'; // toolbar + spacer
+        this.canvas.style.width = targetWidth + 'px';
+        this.canvas.style.height = targetHeight + 'px';
+        this.canvas.style.right = horizontalMargin + 'px';
+        this.canvas.style.bottom = verticalMarginBottom + 'px';
+        
+        // Save current drawing before buffer resize
         const currentDrawing = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
         const oldWidth = this.canvas.width;
         const oldHeight = this.canvas.height;
         
-        // Set canvas to full available size
-        this.canvas.width = Math.max(300, availableWidth);
-        this.canvas.height = Math.max(200, availableHeight);
+        // Set backing buffer size to match displayed size
+        this.canvas.width = targetWidth;
+        this.canvas.height = targetHeight;
         
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
         
-        // Restore the drawing if there was one
         if (oldWidth > 0 && oldHeight > 0) {
-            // Create temporary canvas to hold the old drawing
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = oldWidth;
             tempCanvas.height = oldHeight;
             const tempCtx = tempCanvas.getContext('2d');
             tempCtx.putImageData(currentDrawing, 0, 0);
-            
-            // Fill with white background first
             this.ctx.fillStyle = 'white';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            
-            // Draw the old content scaled to fit new dimensions
             this.ctx.drawImage(tempCanvas, 0, 0, oldWidth, oldHeight, 0, 0, this.canvas.width, this.canvas.height);
         }
         
-        // Also resize overlay canvas
         this.resizeOverlayCanvas();
     }
 
