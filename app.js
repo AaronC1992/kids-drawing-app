@@ -145,33 +145,35 @@
     resizeCanvas() {
         const toolbar = document.querySelector('.toolbar');
         const toolbarHeight = toolbar ? toolbar.offsetHeight : 80;
-        const horizontalMargin = 10; // match CSS left/right 5px on mobile, 10px desktop
-        const verticalMarginBottom = 10; // match CSS bottom spacing
         
-        // Compute target CSS size directly from viewport (avoids calc(% - px) mismatches)
-        const targetWidth = Math.max(300, window.innerWidth - horizontalMargin * 2);
-        const targetHeight = Math.max(200, window.innerHeight - toolbarHeight - verticalMarginBottom - (toolbar ? 0 : 0));
+        // Calculate available space: full viewport minus toolbar and small margins
+        const isMobile = window.innerWidth <= 768;
+        const margin = isMobile ? 5 : 10;
+        const topGap = 15; // space between toolbar and canvas
         
-        // Apply style dimensions so clientWidth/clientHeight reflect our layout
-        this.canvas.style.left = horizontalMargin + 'px';
-        this.canvas.style.top = (toolbarHeight + 15) + 'px'; // toolbar + spacer
+        const targetWidth = window.innerWidth - (margin * 2);
+        const targetHeight = window.innerHeight - toolbarHeight - topGap - margin;
+        
+        // Set CSS position and dimensions explicitly
+        this.canvas.style.position = 'absolute';
+        this.canvas.style.top = (toolbarHeight + topGap) + 'px';
+        this.canvas.style.left = margin + 'px';
         this.canvas.style.width = targetWidth + 'px';
         this.canvas.style.height = targetHeight + 'px';
-        this.canvas.style.right = horizontalMargin + 'px';
-        this.canvas.style.bottom = verticalMarginBottom + 'px';
         
         // Save current drawing before buffer resize
         const currentDrawing = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
         const oldWidth = this.canvas.width;
         const oldHeight = this.canvas.height;
         
-        // Set backing buffer size to match displayed size
+        // Set backing buffer to match display size
         this.canvas.width = targetWidth;
         this.canvas.height = targetHeight;
         
         this.ctx.lineCap = 'round';
         this.ctx.lineJoin = 'round';
         
+        // Restore drawing scaled to new size
         if (oldWidth > 0 && oldHeight > 0) {
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = oldWidth;

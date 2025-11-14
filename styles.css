@@ -673,12 +673,7 @@ body {
 
 #drawingCanvas {
     position: absolute;
-    top: 85px; /* reserve space for fixed toolbar */
-    left: 10px;
-    right: 10px;
-    bottom: 10px;
-    width: calc(100% - 20px);
-    height: calc(100% - 95px);
+    /* Position and size set dynamically by JS resizeCanvas() */
     border-radius: 20px;
     cursor: crosshair;
     background: white;
@@ -1251,12 +1246,7 @@ body {
     
     #drawingCanvas {
         border-radius: 15px;
-        top: 100px;
-        left: 5px;
-        right: 5px;
-        bottom: 5px;
-        width: calc(100% - 10px);
-        height: calc(100% - 105px);
+        /* Position and size set dynamically by JS */
     }
     
     .sticker-panel,
@@ -1336,15 +1326,6 @@ body {
             padding: 6px 10px;
             font-size: 10px;
             min-width: 115px;
-        }
-        
-        #drawingCanvas {
-            top: 75px;
-            left: 5px;
-            right: 5px;
-            bottom: 5px;
-            width: calc(100% - 10px);
-            height: calc(100% - 80px);
         }
         
         .brush-inline {
@@ -1431,12 +1412,7 @@ body {
     
     #drawingCanvas {
         border-radius: 13px;
-        top: 90px;
-        left: 5px;
-        right: 5px;
-        bottom: 5px;
-        width: calc(100% - 10px);
-        height: calc(100% - 95px);
+        /* Position and size set dynamically by JS */
     }
     
     .toolbar-scroll-hint {
@@ -1536,15 +1512,6 @@ body {
             padding: 6px 10px;
             font-size: 10px;
             min-width: 110px;
-        }
-        
-        #drawingCanvas {
-            top: 70px;
-            left: 5px;
-            right: 5px;
-            bottom: 5px;
-            width: calc(100% - 10px);
-            height: calc(100% - 75px);
         }
         
         .brush-inline {
