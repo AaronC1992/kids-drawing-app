@@ -4417,4 +4417,34 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.Replay) window.Replay.init(app);
     if (window.Analytics) window.Analytics.init();
     if (window.GifExport) window.GifExport.init();
+    
+    // Show scroll hint on mobile if toolbar is scrollable
+    const toolbar = document.querySelector('.toolbar');
+    const scrollHint = document.querySelector('.toolbar-scroll-hint');
+    
+    if (toolbar && scrollHint) {
+        const checkScrollable = () => {
+            const isScrollable = toolbar.scrollWidth > toolbar.clientWidth;
+            const isMobile = window.innerWidth <= 768;
+            
+            if (isScrollable && isMobile) {
+                scrollHint.style.display = 'block';
+                
+                // Hide hint after scroll or after 5 seconds
+                let hintTimeout = setTimeout(() => {
+                    scrollHint.style.display = 'none';
+                }, 5000);
+                
+                toolbar.addEventListener('scroll', () => {
+                    clearTimeout(hintTimeout);
+                    scrollHint.style.display = 'none';
+                }, { once: true });
+            } else {
+                scrollHint.style.display = 'none';
+            }
+        };
+        
+        checkScrollable();
+        window.addEventListener('resize', checkScrollable);
+    }
 });
