@@ -81,13 +81,22 @@
     }
 
     setupCanvas() {
+        // Increase delay for Android WebView to ensure DOM is fully rendered
+        const isAndroidWebView = navigator.userAgent.includes('wv') || navigator.userAgent.includes('Android');
+        const delay = isAndroidWebView ? 300 : 100;
+        
         setTimeout(() => {
             this.resizeCanvas();
             this.ctx.lineCap = 'round';
             this.ctx.lineJoin = 'round';
             this.ctx.fillStyle = 'white';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-        }, 100);
+            
+            // Force another resize after a moment to catch any late layout changes (Android WebView)
+            if (isAndroidWebView) {
+                setTimeout(() => this.resizeCanvas(), 500);
+            }
+        }, delay);
         
         window.addEventListener('resize', () => {
             this.resizeCanvas();
@@ -364,7 +373,13 @@
         // Magnifying glass tool
         const magnifierTool = document.getElementById('magnifierTool');
         if (magnifierTool) {
+            // Add both click and touch handlers for better Android WebView compatibility
             magnifierTool.addEventListener('click', () => {
+                this.toggleMagnifier();
+                this.closeAllCategories();
+            });
+            magnifierTool.addEventListener('touchend', (e) => {
+                e.preventDefault();
                 this.toggleMagnifier();
                 this.closeAllCategories();
             });
@@ -4896,6 +4911,45 @@ function toggleCategory(categoryId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
+    // Show version popup on startup
+    const versionPopup = document.createElement('div');
+    versionPopup.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(135deg, #FFB6C1, #E6E6FA);
+        border: 5px solid #FF69B4;
+        border-radius: 25px;
+        padding: 30px;
+        z-index: 99999;
+        text-align: center;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        font-family: 'Comic Sans MS', Arial, sans-serif;
+    `;
+    versionPopup.innerHTML = `
+        <h2 style="color: #8B008B; font-size: 28px; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(255,255,255,0.8);">🎨 Kids Drawing App 🎨</h2>
+        <p style="color: #FF1493; font-size: 24px; font-weight: bold; margin: 10px 0;">Version 1.1.4.6</p>
+        <p style="color: #8B008B; font-size: 16px; margin: 15px 0;">Ready to draw!</p>
+        <button id="versionOkBtn" style="
+            background: linear-gradient(45deg, #FF69B4, #FF1493);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            padding: 12px 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+            margin-top: 10px;
+        ">Let's Draw! 🖌️</button>
+    `;
+    document.body.appendChild(versionPopup);
+    
+    document.getElementById('versionOkBtn').addEventListener('click', () => {
+        versionPopup.remove();
+    });
+    
     const app = new KidsDrawingApp();
     window.appInstance = app;
     if (window.DailyUnlock) window.DailyUnlock.init();
