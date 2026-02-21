@@ -1,5 +1,5 @@
 // Service Worker for Kids Drawing App PWA
-const CACHE_NAME = 'kids-drawing-app-v3';
+const CACHE_NAME = 'kids-drawing-app-v4';
 const urlsToCache = [
   './',
   './index.html',
@@ -7,6 +7,10 @@ const urlsToCache = [
   './app.js',
   './manifest.json',
   './offline.html',
+  './modules/replay.js',
+  './modules/dailyUnlock.js',
+  './modules/analytics.js',
+  './modules/gifExport.js',
   './icon-72.png',
   './icon-96.png',
   './icon-128.png',
@@ -17,7 +21,6 @@ const urlsToCache = [
   './icon-512.png'
 ];
 
-// Install event - cache files
 // Install event - cache app shell
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -26,7 +29,6 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// Fetch event - serve from cache when offline
 // Fetch event
 self.addEventListener('fetch', event => {
   // Handle navigation requests with offline fallback
@@ -66,7 +68,6 @@ self.addEventListener('fetch', event => {
   );
 });
 
-// Activate event - clean up old caches
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
   const cacheWhitelist = [CACHE_NAME];

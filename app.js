@@ -1,4 +1,4 @@
-﻿class KidsDrawingApp {
+class KidsDrawingApp {
     constructor() {
         this.canvas = document.getElementById('drawingCanvas');
         this.ctx = this.canvas.getContext('2d');
@@ -33,8 +33,6 @@
         this.selectedSticker = null;
         
         // Wobbly crayon animation properties
-        this.wobbleTime = 0;
-        this.wobbleSegments = [];
         this.wigglyLines = []; // Store drawn lines that should keep wiggling
         this.animationRunning = false;
         
@@ -66,12 +64,9 @@
         // Multi-touch support
         this.activeTouches = new Map(); // touchId -> per-touch drawing state
 
-        console.log('KidsDrawingApp initialized with tool:', this.currentTool);
-
     this.setupCanvas();
     this.setupEventListeners();
     this.saveState();
-    // Coloring books/PDF feature removed
     this.startAnimationLoop();
         
         // Ensure brush tool is active by default
@@ -235,7 +230,6 @@
                     this.currentTool = tool;
                     document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
                     e.target.classList.add('active');
-                    this.showToolFeedback(this.currentTool);
                     
                     // Show/hide train decorations menu
                     const decorationsMenu = document.getElementById('trainDecorationsMenu');
@@ -260,7 +254,6 @@
             decorationSelect.addEventListener('change', (e) => {
                 const value = e.target.value;
                 this.decorationMode = value || null; // Set to null if empty string (Draw Track option)
-                console.log('Decoration mode set to:', this.decorationMode);
             });
         }
 
@@ -296,36 +289,25 @@
         // Sticker tool
         const stickerTool = document.getElementById('stickerTool');
         if (stickerTool) {
-            console.log('Sticker tool found, adding event listener');
             stickerTool.addEventListener('click', () => {
-                console.log('Sticker tool clicked!');
                 this.showStickerPanel();
                 this.closeAllCategories();
             });
-        } else {
-            console.log('Sticker tool NOT found');
         }
-
-        // Coloring Books tool removed
 
         // Panel close buttons
         const closeStickerPanel = document.getElementById('closeStickerPanel');
         
         if (closeStickerPanel) {
-            console.log('Close sticker panel button found');
             closeStickerPanel.addEventListener('click', (e) => {
                 e.stopPropagation(); // Prevent event bubbling
-                console.log('Close sticker panel button clicked!');
                 this.hideStickerPanel();
             });
-        } else {
-            console.log('Close sticker panel button NOT found');
         }
 
         // Sticker clicks
         document.querySelectorAll('.sticker').forEach(sticker => {
             sticker.addEventListener('click', (e) => {
-                console.log('Sticker clicked:', e.target.textContent);
                 this.stickerMode = true;
                 this.selectedSticker = e.target.textContent;
                 this.canvas.style.cursor = 'crosshair';
@@ -337,7 +319,6 @@
                 const stickerTool = document.getElementById('stickerTool');
                 if (stickerTool) stickerTool.classList.add('active');
                 
-                console.log('Sticker mode activated:', this.stickerMode, 'Selected:', this.selectedSticker);
             });
         });
 
@@ -388,19 +369,14 @@
         document.addEventListener('keydown', (e) => {
             if (e.key === 's' && !e.ctrlKey && !e.metaKey) {
                 this.decorationMode = 'station';
-                console.log('Station mode activated - click near a track to place a station');
             } else if (e.key === 't' && !e.ctrlKey && !e.metaKey) {
                 this.decorationMode = 'tunnel';
-                console.log('Tunnel mode activated - click near a track to place a tunnel');
             } else if (e.key === 'r' && !e.ctrlKey && !e.metaKey) {
                 this.decorationMode = 'tree';
-                console.log('Tree mode activated - click near a track to place a tree');
             } else if (e.key === 'b' && !e.ctrlKey && !e.metaKey) {
                 this.decorationMode = 'building';
-                console.log('Building mode activated - click near a track to place a building');
             } else if (e.key === 'Escape') {
                 this.decorationMode = null;
-                console.log('Decoration mode cancelled');
             }
         });
     }
@@ -438,7 +414,6 @@
         
         if (stickerPanel && stickerPanel.style.display === 'block' && 
             !stickerPanel.contains(e.target) && e.target !== stickerTool) {
-            console.log('Clicked outside sticker panel, closing it');
             this.hideStickerPanel();
         }
     }
@@ -727,7 +702,6 @@
         if (this.currentTool === 'wobbly-crayon' && this.currentWigglyLine) {
             this.wigglyLines.push(this.currentWigglyLine);
             this.currentWigglyLine = null;
-            this.updateStaticCanvas();
         }
 
         // Finalize train track and create a train
@@ -769,9 +743,6 @@
         const x = (e.clientX - rect.left) * scaleX;
         const y = (e.clientY - rect.top) * scaleY;
         
-        console.log('startDrawing called - stickerMode:', this.stickerMode, 'selectedSticker:', this.selectedSticker);
-        
-        // Handle decoration placement
         if (this.decorationMode) {
             this.addTrackDecoration(x, y, this.decorationMode);
             // Reset dropdown to "Draw Track" option
@@ -780,7 +751,6 @@
                 decorationSelect.value = '';
             }
             this.decorationMode = null;
-            console.log('Decoration placed');
             return;
         }
         
@@ -796,7 +766,6 @@
 
         // Handle sticker placement
         if (this.stickerMode && this.selectedSticker) {
-            console.log('Placing sticker at:', x, y);
             this.addStickerAt(this.selectedSticker, x, y);
             this.stickerMode = false;
             this.selectedSticker = null;
@@ -850,11 +819,9 @@
             this.ctx.beginPath();
             this.ctx.moveTo(x, y);
         } else if (this.currentTool === 'smudge') {
-            // Smudge tool doesn't need initial setup like other brushes
-            this.startSmudging(x, y);
+            // Smudge tool doesn't need initial setup
         } else if (this.currentTool === 'blend') {
-            // Blend tool doesn't need initial canvas setup
-            this.startBlending(x, y);
+            // Blend tool doesn't need initial setup
         } else if (this.currentTool === 'train-track') {
             this.drawTrainTrack(x, y);
         } else if (this.currentTool === 'leaf-trail') {
@@ -976,8 +943,6 @@
             if (this.currentTool === 'wobbly-crayon' && this.currentWigglyLine) {
                 this.wigglyLines.push(this.currentWigglyLine);
                 this.currentWigglyLine = null;
-                // Update static canvas data to exclude wiggly lines
-                this.updateStaticCanvas();
             }
             
             // Finalize train track and create a train
@@ -1013,12 +978,6 @@
         }
     }
     
-    updateStaticCanvas() {
-        // This method would ideally separate static content from wiggly lines
-        // For now, we'll just clear the static data when new wiggly lines are added
-        this.staticCanvasData = null;
-    }
-
     saveState() {
         this.historyIndex++;
         if (this.historyIndex < this.history.length) {
@@ -1159,22 +1118,6 @@
             this.grassBlades = this.grassBlades.filter(blade => {
                 const distance = Math.sqrt((blade.x - x) ** 2 + (blade.y - y) ** 2);
                 return distance > eraserRadius;
-            });
-        }
-    }
-
-    drawFireworks(x, y) {
-        console.log('Creating fireworks particles at', x, y, 'pdfMode:', this.pdfMode);
-        // Original fireworks - simple particle explosion
-        for (let i = 0; i < 10; i++) {
-            this.particles.push({
-                x: x,
-                y: y,
-                vx: (Math.random() - 0.5) * 8,
-                vy: (Math.random() - 0.5) * 8,
-                life: 60,
-                type: 'firework',
-                color: this.getRandomFireworkColor()
             });
         }
     }
@@ -1414,7 +1357,7 @@
             return; // Don't add more bugs if we're at the limit
         }
         
-        const bugTypes = ['🐞', '🐜', '🪲', '🦗', '🕷️'];
+        const bugTypes = ['??', '??', '??', '??', '???'];
         const availableSlots = maxBugs - currentBugCount;
         const numBugs = Math.min(3 + Math.floor(Math.random() * 4), availableSlots); // 3-6 bugs, but not exceeding limit
         
@@ -1553,16 +1496,6 @@
         return colors[Math.floor(Math.random() * colors.length)];
     }
 
-    getRandomGlitterColor() {
-        const glitterColors = ['#ffffff', '#ffff00', '#ffd700', '#ffb6c1', '#87ceeb', '#98fb98', '#dda0dd', '#f0e68c'];
-        return glitterColors[Math.floor(Math.random() * glitterColors.length)];
-    }
-
-    getRandomColor() {
-        const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#f9ca24', '#f0932b', '#eb4d4b', '#6c5ce7'];
-        return colors[Math.floor(Math.random() * colors.length)];
-    }
-
     drawFireworks(x, y) {
         // Create realistic fireworks with rocket launch and sparkling trail
         const launchHeight = 100 + Math.random() * 80; // Varied launch height
@@ -1586,35 +1519,7 @@
         });
     }
 
-    // Coloring books feature removed; placeholder to avoid reference errors if any remain
-    setupColoringBooks() {}
 
-    // Removed PDF modal methods
-    async showColoringBooksModal() {}
-
-    hideColoringBooksModal() {}
-
-    async loadPdfFiles() { return []; }
-
-    async handlePdfFileInput() {}
-
-    async selectPdf() {}
-
-    async showPageSelectionModal() {}
-
-    async generatePageThumbnail() {}
-
-    hidePageSelectionModal() {}
-
-    async selectPage() {}
-
-    async enterPdfMode() {}
-
-    zoomPdf() {}
-    
-    resetPdfZoom() {}
-    
-    updateZoomDisplay() {}
 
     toggleMagnifier() {
         this.magnifierActive = !this.magnifierActive;
@@ -1690,7 +1595,7 @@
         `;
         
         const zoomLabel = document.createElement('span');
-        zoomLabel.textContent = '🔍';
+        zoomLabel.textContent = '??';
         zoomLabel.style.cssText = 'font-size: 16px;';
         
         const slider = document.createElement('input');
@@ -2013,9 +1918,9 @@
             this.ctx.beginPath();
             this.ctx.moveTo(x, y);
         } else if (this.currentTool === 'smudge') {
-            this.startSmudging(x, y);
+            // Smudge tool doesn't need initial setup
         } else if (this.currentTool === 'blend') {
-            this.startBlending(x, y);
+            // Blend tool doesn't need initial setup
         } else if (this.currentTool === 'train-track') {
             this.drawTrainTrack(x, y);
         } else if (this.currentTool === 'leaf-trail') {
@@ -2121,22 +2026,6 @@
         this.lastPoint = { x, y };
     }
 
-    async renderPdfPage() {}
-
-    setupPdfDrawingEvents() {}
-
-    startPdfDrawing() {}
-
-    drawOnPdf() {}
-
-    stopPdfDrawing() {}
-
-    handlePdfTouch() {}
-
-    clearPdfDrawing() {}
-
-    exitPdfMode() {}
-
     startAnimationLoop() {
         const animate = () => {
             this.updateParticles();
@@ -2145,23 +2034,9 @@
         animate();
     }
 
-    // Helper function to get adjusted coordinates for PDF mode
-    getAdjustedCoords(x, y) {
-        // Particles are now stored in canvas coordinates directly, no adjustment needed
-        return { x, y };
-    }
-
     updateParticles() {
-        // Determine which overlay context to use based on current mode
     const overlayCtx = this.overlayCtx;
     const overlayCanvas = this.overlayCanvas;
-        
-        if (this.particles.length > 0) {
-            console.log('updateParticles - pdfMode:', this.pdfMode, 'overlayCtx exists:', !!overlayCtx, 'particles:', this.particles.length, 'overlayCanvas size:', overlayCanvas ? `${overlayCanvas.width}x${overlayCanvas.height}` : 'null');
-            if (this.pdfMode && this.pdfOverlayCanvas) {
-                console.log('PDF overlay canvas position:', this.pdfOverlayCanvas.style.left, this.pdfOverlayCanvas.style.top, 'z-index:', this.pdfOverlayCanvas.style.zIndex);
-            }
-        }
         
         // Clear overlay canvas for fresh animation frame
         if (overlayCtx && overlayCanvas) {
@@ -2170,7 +2045,7 @@
         
         // Draw snap point indicator if train-track tool is selected and near a snap point
         if (this.currentSnapPoint && this.currentTool === 'train-track' && overlayCtx) {
-            const adjustedCoords = this.getAdjustedCoords(this.currentSnapPoint.point.x, this.currentSnapPoint.point.y);
+            const adjustedCoords = {x: this.currentSnapPoint.point.x, y: this.currentSnapPoint.point.y};
             
             // Animated pulsing effect
             const pulseSize = 15 + Math.sin(Date.now() * 0.005) * 5;
@@ -2229,7 +2104,7 @@
                 // Draw the rocket
                 if (overlayCtx) {
                     // Adjust coordinates for PDF mode
-                    const adjustedCoords = this.getAdjustedCoords(particle.x, particle.y);
+                    const adjustedCoords = {x: particle.x, y: particle.y};
                     
                     overlayCtx.save();
                     overlayCtx.globalAlpha = 0.9;
@@ -2348,7 +2223,7 @@
                     
                     if (overlayCtx) {
                         // Apply coordinate adjustment for PDF mode
-                        const adjustedCoords = this.getAdjustedCoords(particle.x, particle.y);
+                        const adjustedCoords = {x: particle.x, y: particle.y};
                         
                         // Clear the area where this particle might be drawn - minimal area
                         overlayCtx.save();
@@ -2385,7 +2260,7 @@
                     
                     if (overlayCtx) {
                         // Apply coordinate adjustment for PDF mode
-                        const adjustedCoords = this.getAdjustedCoords(particle.x, particle.y);
+                        const adjustedCoords = {x: particle.x, y: particle.y};
                         
                         const alpha = particle.life / 40;
                         overlayCtx.save();
@@ -2405,7 +2280,7 @@
                     overlayCtx.globalAlpha = 1; // Full clearing
                     
                     // Apply coordinate adjustment for PDF mode
-                    const prevCoords = this.getAdjustedCoords(particle.prevX, particle.prevY);
+                    const prevCoords = {x: particle.prevX, y: particle.prevY};
                     
                     overlayCtx.beginPath();
                     // Clear balloon area
@@ -2436,7 +2311,7 @@
                     overlayCtx.save();
                     
                     // Apply coordinate adjustment for PDF mode
-                    const adjustedCoords = this.getAdjustedCoords(particle.x, particle.y);
+                    const adjustedCoords = {x: particle.x, y: particle.y};
                     
                     // Draw wavy balloon string (behind balloon)
                     overlayCtx.globalAlpha = alpha * 0.8;
@@ -2493,7 +2368,7 @@
                 particle.rotation += particle.rotationSpeed;
                 particle.life--;
                 
-                const adjustedCoords = this.getAdjustedCoords(particle.x, particle.y);
+                const adjustedCoords = {x: particle.x, y: particle.y};
                 const alpha = particle.life / 100;
                 if (overlayCtx) {
                     overlayCtx.save();
@@ -2541,8 +2416,8 @@
                         // Worm gets thicker in the middle, thinner at ends
                         const thickness = Math.sin(progress * Math.PI) * 6 + 2;
                         
-                        const prevCoords = this.getAdjustedCoords(particle.trail[i-1].x, particle.trail[i-1].y);
-                        const currentCoords = this.getAdjustedCoords(particle.trail[i].x, particle.trail[i].y);
+                        const prevCoords = {x: particle.trail[i-1].x, y: particle.trail[i-1].y};
+                        const currentCoords = {x: particle.trail[i].x, y: particle.trail[i].y};
                         
                         overlayCtx.globalAlpha = alpha;
                         overlayCtx.strokeStyle = particle.color;
@@ -2559,7 +2434,7 @@
                     // Draw worm head (bigger and brighter)
                     if (particle.trail.length > 0) {
                         const head = particle.trail[particle.trail.length - 1];
-                        const headCoords = this.getAdjustedCoords(head.x, head.y);
+                        const headCoords = {x: head.x, y: head.y};
                         overlayCtx.globalAlpha = particle.life / 150;
                         overlayCtx.fillStyle = particle.color;
                         overlayCtx.beginPath();
@@ -2617,10 +2492,10 @@
                     
                     overlayCtx.beginPath();
                     // Apply coordinate adjustment for PDF mode to first segment
-                    const firstCoords = this.getAdjustedCoords(particle.segments[0].x, particle.segments[0].y);
+                    const firstCoords = {x: particle.segments[0].x, y: particle.segments[0].y};
                     overlayCtx.moveTo(firstCoords.x, firstCoords.y);
                     for (let i = 1; i < particle.segments.length; i++) {
-                        const adjustedCoords = this.getAdjustedCoords(particle.segments[i].x, particle.segments[i].y);
+                        const adjustedCoords = {x: particle.segments[i].x, y: particle.segments[i].y};
                         overlayCtx.lineTo(adjustedCoords.x, adjustedCoords.y);
                     }
                     overlayCtx.stroke();
@@ -2635,7 +2510,7 @@
                     // Apply coordinate adjustment for white core as well
                     overlayCtx.moveTo(firstCoords.x, firstCoords.y);
                     for (let i = 1; i < particle.segments.length; i++) {
-                        const adjustedCoords = this.getAdjustedCoords(particle.segments[i].x, particle.segments[i].y);
+                        const adjustedCoords = {x: particle.segments[i].x, y: particle.segments[i].y};
                         overlayCtx.lineTo(adjustedCoords.x, adjustedCoords.y);
                     }
                     overlayCtx.stroke();
@@ -2652,7 +2527,7 @@
                         overlayCtx.shadowBlur = 10;
                         
                         overlayCtx.beginPath();
-                        const startCoords = this.getAdjustedCoords(startSeg.x, startSeg.y);
+                        const startCoords = {x: startSeg.x, y: startSeg.y};
                         overlayCtx.moveTo(startCoords.x, startCoords.y);
                         
                         let branchX = startSeg.x;
@@ -2660,7 +2535,7 @@
                         for (let j = 1; j <= branchLength; j++) {
                             branchX += (Math.random() - 0.5) * 25;
                             branchY += (Math.random() - 0.5) * 25;
-                            const branchCoords = this.getAdjustedCoords(branchX, branchY);
+                            const branchCoords = {x: branchX, y: branchY};
                             overlayCtx.lineTo(branchCoords.x, branchCoords.y);
                         }
                         overlayCtx.stroke();
@@ -2848,7 +2723,7 @@
                 const alpha = particle.life / 45;
                 
                 if (overlayCtx && alpha > 0.01) {
-                    const adjustedCoords = this.getAdjustedCoords(particle.x, particle.y);
+                    const adjustedCoords = {x: particle.x, y: particle.y};
                     
                     overlayCtx.save();
                     overlayCtx.globalAlpha = alpha;
@@ -2868,33 +2743,9 @@
         this.particles = this.particles.filter(p => p.life > 0 || p.life === -1);
     }
 
-    showToolFeedback(toolName) {
-        const toolNames = {
-            brush: '🖌️ Brush',
-            spray: '💨 Spray',
-            fill: '🪣 Fill',
-            eraser: '🧽 Eraser',
-            glitter: '✨ Glitter',
-            neon: '💡 Neon',
-            bubble: '🎈 Balloons',
-            fireworks: '🎆 Fireworks',
-            streamers: '🎗️ Streamers',
-            confetti: '🎊 Confetti',
-            sparkles: '🐛 Colorful Worms',
-            lightning: '⚡ Lightning',
-            bugs: '🐞 Bugs'
-        };
-        
-        console.log('Selected tool:', toolNames[toolName] || toolName);
-    }
-
     showStickerPanel() {
-        console.log('showStickerPanel called');
         const panel = document.getElementById('stickerPanel');
         if (panel) {
-            console.log('Panel found, showing panel');
-            
-            // Show the panel with proper styling
             panel.style.display = 'block';
             panel.style.position = 'absolute';
             panel.style.right = '0px';
@@ -2903,35 +2754,24 @@
             panel.style.height = 'calc(100% - 40px)';
             panel.style.zIndex = '2000';
             panel.classList.add('show');
-            
-            console.log('Panel should now be visible');
-        } else {
-            console.log('Panel NOT found');
         }
     }
 
     hideStickerPanel() {
-        console.log('hideStickerPanel called');
         const panel = document.getElementById('stickerPanel');
         if (panel) {
-            console.log('Panel found, hiding panel');
             panel.style.display = 'none';
             panel.classList.remove('show');
-            console.log('Panel hidden');
-        } else {
-            console.log('Panel NOT found in hideStickerPanel');
         }
     }
 
     addStickerAt(stickerText, x, y) {
-        console.log('addStickerAt called:', stickerText, 'at position:', x, y);
         this.ctx.font = '48px Arial';
         this.ctx.textAlign = 'center';
         this.ctx.textBaseline = 'middle';
         this.ctx.fillStyle = '#000000'; // Use black color for visibility
         this.ctx.fillText(stickerText, x, y);
         this.saveState();
-        console.log('Sticker placed successfully');
     }
 
     // Art Tool Methods
@@ -2983,12 +2823,10 @@
             return;
         }
         
-        // Determine which overlay context to use based on current mode
-        const overlayCtx = this.pdfMode ? this.pdfOverlayCtx : this.overlayCtx;
-        const overlayCanvas = this.pdfMode ? this.pdfOverlayCanvas : this.overlayCanvas;
+        const overlayCtx = this.overlayCtx;
+        const overlayCanvas = this.overlayCanvas;
         
         if (!overlayCtx) {
-            // Retry next frame if overlay context not ready
             requestAnimationFrame(() => this.animateWigglyLines());
             return;
         }
@@ -3103,8 +2941,8 @@
                 const currentPoint = line.points[i];
                 
                 // Apply coordinate adjustment for PDF mode
-                const prevCoords = this.getAdjustedCoords(prevPoint.currentX, prevPoint.currentY);
-                const currentCoords = this.getAdjustedCoords(currentPoint.currentX, currentPoint.currentY);
+                const prevCoords = {x: prevPoint.currentX, y: prevPoint.currentY};
+                const currentCoords = {x: currentPoint.currentX, y: currentPoint.currentY};
                 
                 // Use the color stored with each point
                 overlayCtx.strokeStyle = currentPoint.color || line.color;
@@ -3120,7 +2958,7 @@
             
             line.points.forEach((point, index) => {
                 // Apply coordinate adjustment for PDF mode
-                const adjustedCoords = this.getAdjustedCoords(point.currentX, point.currentY);
+                const adjustedCoords = {x: point.currentX, y: point.currentY};
                 
                 if (index === 0) {
                     overlayCtx.moveTo(adjustedCoords.x, adjustedCoords.y);
@@ -3131,12 +2969,6 @@
             
             overlayCtx.stroke();
         }
-    }
-
-    startSmudging(x, y) {
-        // Store the starting point for smudging
-        this.smudgeStartX = x;
-        this.smudgeStartY = y;
     }
 
     drawSmudge(x, y) {
@@ -3169,12 +3001,6 @@
         this.ctx.fill();
         this.ctx.globalAlpha = 1;
         this.ctx.globalCompositeOperation = 'source-over';
-    }
-
-    startBlending(x, y) {
-        // Store the starting point for blending
-        this.blendStartX = x;
-        this.blendStartY = y;
     }
 
     drawBlend(x, y) {
@@ -3268,12 +3094,9 @@
         this.currentTrack.push({ x, y });
         
         if (this.currentTrack.length === 1) {
-            // First point - initialize rail paths
+            // First point - start the rail paths
             this.leftRailPath = new Path2D();
             this.rightRailPath = new Path2D();
-            this.lastTiePosition = 0;
-            
-            // Start the rail paths
             this.leftRailPath.moveTo(x, y);
             this.rightRailPath.moveTo(x, y);
         } else {
@@ -3354,21 +3177,6 @@
         this.ctx.restore();
     }
 
-    // Draw snap point indicators on overlay
-    drawSnapPointIndicators(x, y) {
-        if (this.currentTool !== 'train-track') return;
-        
-        const snapPoint = this.findNearbyTrackEndpoint(x, y, 30);
-        const overlayCtx = this.pdfMode ? this.pdfOverlayCtx : this.overlayCtx;
-        const overlayCanvas = this.pdfMode ? this.pdfOverlayCanvas : this.overlayCanvas;
-        
-        if (!overlayCtx || !overlayCanvas) return;
-        
-        // Clear previous snap indicators (we'll redraw in the animation loop)
-        // Store the snap point for the animation loop to draw
-        this.currentSnapPoint = snapPoint;
-    }
-
     // Update snap point indicators based on mouse position
     updateSnapPointIndicators(e) {
         // Only show snap points when train-track tool is selected
@@ -3377,13 +3185,8 @@
             return;
         }
         
-        // Get mouse coordinates based on mode
         let x, y;
-        if (this.pdfMode && this.pdfDrawingCanvas) {
-            const rect = this.pdfDrawingCanvas.getBoundingClientRect();
-            x = e.clientX - rect.left;
-            y = e.clientY - rect.top;
-        } else if (this.canvas) {
+        if (this.canvas) {
             const rect = this.canvas.getBoundingClientRect();
             const scaleX = this.canvas.width / rect.width;
             const scaleY = this.canvas.height / rect.height;
@@ -3518,188 +3321,6 @@
         return false; // Not merged
     }
 
-    // Find if a line segment intersects with any existing track
-    findTrackIntersection(p1, p2) {
-        if (!this.trainTracks || this.trainTracks.length === 0) {
-            console.log('No existing tracks to check for intersection');
-            return null;
-        }
-        
-        console.log('Checking intersection for segment', p1, 'to', p2, 'against', this.trainTracks.length, 'tracks');
-        
-        for (let trackIndex = 0; trackIndex < this.trainTracks.length; trackIndex++) {
-            const track = this.trainTracks[trackIndex];
-            
-            for (let i = 0; i < track.length - 1; i++) {
-                const t1 = track[i];
-                const t2 = track[i + 1];
-                
-                // Check if line segment (p1, p2) intersects with (t1, t2)
-                const intersection = this.lineIntersection(p1, p2, t1, t2);
-                
-                if (intersection) {
-                    console.log('Found raw intersection at', intersection);
-                    // Don't count endpoints as intersections
-                    const distToP1 = Math.sqrt((intersection.x - p1.x) ** 2 + (intersection.y - p1.y) ** 2);
-                    const distToP2 = Math.sqrt((intersection.x - p2.x) ** 2 + (intersection.y - p2.y) ** 2);
-                    const distToT1 = Math.sqrt((intersection.x - t1.x) ** 2 + (intersection.y - t1.y) ** 2);
-                    const distToT2 = Math.sqrt((intersection.x - t2.x) ** 2 + (intersection.y - t2.y) ** 2);
-                    
-                    console.log('Distances: P1:', distToP1, 'P2:', distToP2, 'T1:', distToT1, 'T2:', distToT2);
-                    
-                    if (distToP1 > 5 && distToP2 > 5 && distToT1 > 5 && distToT2 > 5) {
-                        console.log('Valid intersection! Creating junction');
-                        return {
-                            point: intersection,
-                            trackIndex: trackIndex,
-                            segmentIndex: i
-                        };
-                    } else {
-                        console.log('Intersection too close to endpoints, skipping');
-                    }
-                }
-            }
-        }
-        
-        console.log('No valid intersections found');
-        return null;
-    }
-
-    // Calculate intersection point of two line segments
-    lineIntersection(p1, p2, p3, p4) {
-        const x1 = p1.x, y1 = p1.y;
-        const x2 = p2.x, y2 = p2.y;
-        const x3 = p3.x, y3 = p3.y;
-        const x4 = p4.x, y4 = p4.y;
-        
-        const denom = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-        
-        if (Math.abs(denom) < 0.001) return null; // Lines are parallel
-        
-        const t = ((x1 - x3) * (y3 - y4) - (y1 - y3) * (x3 - x4)) / denom;
-        const u = -((x1 - x2) * (y1 - y3) - (y1 - y2) * (x1 - x3)) / denom;
-        
-        // Check if intersection is within both line segments
-        if (t >= 0 && t <= 1 && u >= 0 && u <= 1) {
-            return {
-                x: x1 + t * (x2 - x1),
-                y: y1 + t * (y2 - y1)
-            };
-        }
-        
-        return null;
-    }
-
-    // Create a junction (switch) at track intersection
-    createTrackJunction(intersection) {
-        if (!this.trackJunctions) {
-            this.trackJunctions = [];
-        }
-        
-        // Check if junction already exists at this location
-        const existingJunction = this.trackJunctions.find(j => {
-            const dist = Math.sqrt((j.x - intersection.point.x) ** 2 + (j.y - intersection.point.y) ** 2);
-            return dist < 10;
-        });
-        
-        if (!existingJunction) {
-            this.trackJunctions.push({
-                x: intersection.point.x,
-                y: intersection.point.y,
-                tracks: [intersection.trackIndex, this.trainTracks.length], // Will be current track when finished
-                activeTrack: 0 // Which track is currently active for trains passing through
-            });
-            
-            // Draw the junction marker
-            this.drawJunctionMarker(intersection.point.x, intersection.point.y);
-        }
-    }
-
-    // Draw a visual marker for the junction
-    drawJunctionMarker(x, y) {
-        const ctx = this.pdfMode ? this.pdfDrawingCtx : this.ctx;
-        if (!ctx) return;
-        
-        const adjustedCoords = this.getAdjustedCoords(x, y);
-        
-        ctx.save();
-        ctx.fillStyle = '#FF6600';
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 2;
-        
-        // Draw a small circle to indicate the junction
-        ctx.beginPath();
-        ctx.arc(adjustedCoords.x, adjustedCoords.y, 6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        
-        ctx.restore();
-    }
-
-    // Draw all track junctions on the overlay canvas
-    drawTrackJunctions(overlayCtx, overlayCanvas) {
-        if (!this.trackJunctions || this.trackJunctions.length === 0 || !overlayCtx) return;
-        
-        this.trackJunctions.forEach(junction => {
-            const adjustedCoords = this.getAdjustedCoords(junction.x, junction.y);
-            
-            overlayCtx.save();
-            
-            // Pulsing animation for junctions
-            const pulseSize = 8 + Math.sin(Date.now() * 0.003) * 2;
-            
-            // Outer glow
-            overlayCtx.fillStyle = 'rgba(255, 102, 0, 0.3)';
-            overlayCtx.beginPath();
-            overlayCtx.arc(adjustedCoords.x, adjustedCoords.y, pulseSize + 4, 0, Math.PI * 2);
-            overlayCtx.fill();
-            
-            // Main junction marker
-            overlayCtx.fillStyle = '#FF6600';
-            overlayCtx.strokeStyle = '#FFFFFF';
-            overlayCtx.lineWidth = 2;
-            overlayCtx.beginPath();
-            overlayCtx.arc(adjustedCoords.x, adjustedCoords.y, pulseSize, 0, Math.PI * 2);
-            overlayCtx.fill();
-            overlayCtx.stroke();
-            
-            // Inner highlight
-            overlayCtx.fillStyle = '#FFA500';
-            overlayCtx.beginPath();
-            overlayCtx.arc(adjustedCoords.x, adjustedCoords.y, pulseSize / 2, 0, Math.PI * 2);
-            overlayCtx.fill();
-            
-            overlayCtx.restore();
-        });
-    }
-
-    // Helper function to darken a color
-    darkenColor(color, amount) {
-        // Convert hex to RGB
-        let r, g, b;
-        if (color.startsWith('#')) {
-            const hex = color.substring(1);
-            r = parseInt(hex.substring(0, 2), 16);
-            g = parseInt(hex.substring(2, 4), 16);
-            b = parseInt(hex.substring(4, 6), 16);
-        } else {
-            return color; // Return original if not hex
-        }
-        
-        // Darken by reducing RGB values
-        r = Math.floor(r * (1 - amount));
-        g = Math.floor(g * (1 - amount));
-        b = Math.floor(b * (1 - amount));
-        
-        // Convert back to hex
-        const toHex = (n) => {
-            const hex = n.toString(16);
-            return hex.length === 1 ? '0' + hex : hex;
-        };
-        
-        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-    }
-
     createTrainForTrack(track, trackIndex) {
         if (track.length < 2) return;
         
@@ -3743,7 +3364,6 @@
     // Generate random train car
     getRandomTrainCar(trainColor) {
         const app = this; // Store reference to app instance for use in draw functions
-        console.log('🚂 getRandomTrainCar called - VERSION 2.0 WITH CARGO FIXES!');
         const carTypes = [
             {
                 type: 'passenger',
@@ -3763,7 +3383,6 @@
                         
                         // Draw passenger faces in windows
                         if (cargo && cargo[i]) {
-                            console.log('Drawing passenger:', cargo[i], 'at window', i);
                             app.drawPassenger(ctx, windowX + size * 0.125, -size * 0.15, size * 0.1, cargo[i]);
                         }
                     }
@@ -3779,15 +3398,11 @@
                     ctx.lineWidth = 2;
                     ctx.strokeRect(-size * 0.7, -size * 0.35, size * 1.4, size * 0.7);
                     
-                    console.log('Drawing cargo car, cargo length:', cargo ? cargo.length : 0);
-                    
-                    // Draw cargo items
                     if (cargo && cargo.length > 0) {
                         cargo.forEach((item, i) => {
                             const offsetX = -size * 0.4 + (i % 3) * size * 0.3;
                             const offsetY = -size * 0.15 + Math.floor(i / 3) * size * 0.25;
                             const bounce = Math.sin(Date.now() * 0.005 + i) * 2; // Slight bounce
-                            console.log('Drawing cargo item:', item, 'at position', i);
                             app.drawCargoItem(ctx, offsetX, offsetY + bounce, size * 0.15, item);
                         });
                     } else {
@@ -3861,7 +3476,6 @@
                 Math.random() > 0.2 ? app.getRandomPassenger() : null,
                 Math.random() > 0.2 ? app.getRandomPassenger() : null
             ];
-            console.log('Created passenger car with:', car.cargo);
         } else if (car.type === 'cargo') {
             // 60% chance to start with cargo (increased from 30%)
             if (Math.random() > 0.4) {
@@ -3869,9 +3483,6 @@
                 for (let i = 0; i < numItems; i++) {
                     car.cargo.push(app.getRandomCargo());
                 }
-                console.log('Created cargo car with', car.cargo.length, 'items:', car.cargo);
-            } else {
-                console.log('Created empty cargo car');
             }
         }
         
@@ -4207,7 +3818,7 @@
     showTrainHonk(x, y, overlayCtx) {
         if (!overlayCtx) return;
         
-        const adjustedCoords = this.getAdjustedCoords(x, y);
+        const adjustedCoords = {x: x, y: y};
         
         // Add a honk particle
         this.particles.push({
@@ -4244,11 +3855,10 @@
             const carData = this.getPositionOnTrack(train.track, carPosition);
             
             if (carData) {
-                const adjustedCoords = this.getAdjustedCoords(carData.x, carData.y);
+                const adjustedCoords = {x: carData.x, y: carData.y};
                 
                 // Debug: Log cargo for first car
                 if (index === 0 && car.cargo) {
-                    console.log('Car type:', car.type, 'Cargo:', car.cargo);
                 }
                 
                 overlayCtx.save();
@@ -4332,7 +3942,7 @@
             
             // Get the endpoint of the track
             const endpoint = track[track.length - 1];
-            const adjustedCoords = this.getAdjustedCoords(endpoint.x, endpoint.y);
+            const adjustedCoords = {x: endpoint.x, y: endpoint.y};
             
             // Draw green flag (add car)
             overlayCtx.save();
@@ -4378,7 +3988,6 @@
     handleFlagClick(x, y) {
         if (!this.trainTracks) return false;
         
-        console.log('Checking flag click at:', x, y); // Debug
         
         for (let trackIndex = 0; trackIndex < this.trainTracks.length; trackIndex++) {
             const track = this.trainTracks[trackIndex];
@@ -4389,7 +3998,6 @@
             
             const endpoint = track[track.length - 1];
             
-            console.log('Track endpoint:', endpoint.x, endpoint.y); // Debug
             
             // Check green flag (add car) - flag is drawn upward and to the right
             // Flag is positioned at endpoint + (25, -25), flag extends right, center is about +7 right and -15 up
@@ -4397,14 +4005,12 @@
             const greenFlagY = endpoint.y - 25 - 15; // Adjusted to center of flag vertically
             const distToGreen = Math.sqrt((x - greenFlagX) ** 2 + (y - greenFlagY) ** 2);
             
-            console.log('Distance to green flag:', distToGreen); // Debug
             
             if (distToGreen < 20) { // Click radius
                 // Add a random car
                 const newCar = this.getRandomTrainCar(train.color);
                 if (!train.cars) train.cars = [];
                 train.cars.push(newCar);
-                console.log('Added car! Total cars:', train.cars.length); // Debug
                 return true;
             }
             
@@ -4414,12 +4020,10 @@
                 const redFlagY = endpoint.y - 25 - 15; // Adjusted to center of flag vertically
                 const distToRed = Math.sqrt((x - redFlagX) ** 2 + (y - redFlagY) ** 2);
                 
-                console.log('Distance to red flag:', distToRed); // Debug
                 
                 if (distToRed < 20) { // Click radius
                     // Remove the last car
                     train.cars.pop();
-                    console.log('Removed car! Total cars:', train.cars.length); // Debug
                     return true;
                 }
             }
@@ -4435,7 +4039,7 @@
         const trainColor = train.color || '#1E90FF'; // Use train's color or default to blue
         
         // Apply coordinate adjustment for PDF mode
-        const adjustedCoords = this.getAdjustedCoords(x, y);
+        const adjustedCoords = {x: x, y: y};
         
         // Clear larger area around train since it's now bigger
         overlayCtx.clearRect(adjustedCoords.x - size * 2.5, adjustedCoords.y - size * 2.5, size * 5, size * 5);
@@ -4583,10 +4187,10 @@
 
     // Draw a decoration
     drawDecoration(decoration) {
-        const ctx = this.pdfMode ? this.pdfDrawingCtx : this.ctx;
+        const ctx = this.ctx;
         if (!ctx) return;
         
-        const adjustedCoords = this.getAdjustedCoords(decoration.x, decoration.y);
+        const adjustedCoords = {x: decoration.x, y: decoration.y};
         
         ctx.save();
         ctx.translate(adjustedCoords.x, adjustedCoords.y);
@@ -4680,14 +4284,6 @@
         }
         
         ctx.restore();
-    }
-
-    // Draw all decorations on overlay
-    drawAllDecorations(overlayCtx, overlayCanvas) {
-        if (!this.trackDecorations || this.trackDecorations.length === 0 || !overlayCtx) return;
-        
-        // Decorations are drawn on main canvas, not overlay
-        // But we can add effects on overlay
     }
 
     // Check if train is near a decoration and react
@@ -4804,14 +4400,12 @@
             return;
         }
         
-        // Use the appropriate overlay context based on mode
-        const overlayCtx = this.pdfMode ? this.pdfOverlayCtx : this.overlayCtx;
-        
+        const overlayCtx = this.overlayCtx;
         if (!overlayCtx) return;
         
         // Clear the areas where animated flowers are drawn
         this.flowers.forEach(flower => {
-            const adjustedCoords = this.getAdjustedCoords(flower.x, flower.y);
+            const adjustedCoords = {x: flower.x, y: flower.y};
             overlayCtx.clearRect(
                 adjustedCoords.x - flower.size, 
                 adjustedCoords.y - flower.size * 1.5, 
@@ -4831,10 +4425,10 @@
     }
 
     drawAnimatedFlower(flower, overlayCtx) {
-        if (!overlayCtx) overlayCtx = this.pdfMode ? this.pdfOverlayCtx : this.overlayCtx;
+        if (!overlayCtx) overlayCtx = this.overlayCtx;
         if (!overlayCtx) return;
         
-        const adjustedCoords = this.getAdjustedCoords(flower.x, flower.y);
+        const adjustedCoords = {x: flower.x, y: flower.y};
         const sway = Math.sin(Date.now() * 0.003 + flower.phase) * 3;
         const x = adjustedCoords.x + sway;
         const y = adjustedCoords.y;
@@ -4936,14 +4530,12 @@
             return;
         }
         
-        // Use the appropriate overlay context based on mode
-        const overlayCtx = this.pdfMode ? this.pdfOverlayCtx : this.overlayCtx;
-        
+        const overlayCtx = this.overlayCtx;
         if (!overlayCtx) return;
         
         // Clear the areas where grass blades are drawn
         this.grassBlades.forEach(blade => {
-            const adjustedCoords = this.getAdjustedCoords(blade.x, blade.y);
+            const adjustedCoords = {x: blade.x, y: blade.y};
             overlayCtx.clearRect(
                 adjustedCoords.x - 10, 
                 adjustedCoords.y - blade.height - 5, 
@@ -4963,10 +4555,10 @@
     }
 
     drawGrassBladeOnOverlay(blade, overlayCtx) {
-        if (!overlayCtx) overlayCtx = this.pdfMode ? this.pdfOverlayCtx : this.overlayCtx;
+        if (!overlayCtx) overlayCtx = this.overlayCtx;
         if (!overlayCtx) return;
         
-        const adjustedCoords = this.getAdjustedCoords(blade.x, blade.y);
+        const adjustedCoords = {x: blade.x, y: blade.y};
         const wiggle = Math.sin(Date.now() * 0.005 + blade.phase) * 2;
         
         overlayCtx.strokeStyle = '#228B22';
@@ -5123,7 +4715,7 @@
     }
 
     closeAllCategories() {
-        const allCategories = ['brushes-effects', 'tools', 'actions', 'colors'];
+        const allCategories = ['brushes-effects', 'tools', 'actions', 'game-extras', 'colors'];
         allCategories.forEach(catId => {
             const content = document.getElementById(catId);
             const arrow = content?.parentElement?.querySelector('.category-arrow');
@@ -5142,7 +4734,7 @@ function toggleCategory(categoryId) {
     const header = content.parentElement.querySelector('.category-header');
     
     // Close all other categories first
-    const allCategories = ['brushes-effects', 'tools', 'actions', 'colors'];
+    const allCategories = ['brushes-effects', 'tools', 'actions', 'game-extras', 'colors'];
     allCategories.forEach(catId => {
         if (catId !== categoryId) {
             const otherContent = document.getElementById(catId);

@@ -68,7 +68,7 @@ body {
     top: 0;
     left: 0;
     right: 0;
-    z-index: 5000; /* Above PDF canvases (4000/4001) */
+    z-index: 5000;
     /* Add scrollbar styling for better visibility */
     scrollbar-width: thin;
     scrollbar-color: #FF69B4 rgba(255,255,255,0.3);
@@ -255,30 +255,6 @@ body {
     display: none;
 }
 
-/* Color Section */
-.color-section {
-    background: linear-gradient(135deg, #FFE4E6, #E6E6FA);
-    border-radius: 20px;
-    padding: 12px;
-    border: 3px solid #FF69B4;
-    box-shadow: 0 5px 15px rgba(255, 105, 180, 0.2);
-    animation: colorPulse 2s ease-in-out infinite;
-}
-
-@keyframes colorPulse {
-    0%, 100% { box-shadow: 0 5px 15px rgba(255, 105, 180, 0.2); }
-    50% { box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4); }
-}
-
-.color-section h4 {
-    font-size: 16px;
-    color: #8B008B;
-    margin-bottom: 10px;
-    font-weight: bold;
-    text-align: center;
-    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
-}
-
 .color-palette {
     display: flex;
     flex-wrap: wrap;
@@ -444,33 +420,6 @@ body {
         box-shadow: 0 0 30px rgba(255, 20, 147, 0.9);
         transform: scale(1.25);
     }
-}
-
-/* Brush Section */
-.brush-section {
-    background: linear-gradient(135deg, #FFE4E6, #E6E6FA);
-    border-radius: 20px;
-    padding: 12px;
-    border: 3px solid #FF69B4;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 140px;
-    box-shadow: 0 5px 15px rgba(255, 105, 180, 0.2);
-    animation: brushFloat 2.5s ease-in-out infinite;
-}
-
-@keyframes brushFloat {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-4px) rotate(1deg); }
-}
-
-.brush-section h4 {
-    font-size: 16px;
-    color: #8B008B;
-    margin-bottom: 10px;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
 }
 
 #brushSize {
@@ -646,9 +595,7 @@ body {
     padding: 0;
     margin: 0;
     background: linear-gradient(135deg, #FFE4E1, #E0FFFF, #F0FFF0, #FFFACD);
-    background-size: 200% 200%;
-    animation: containerGlow 6s ease infinite;
-    border-radius: 0;
+    background-size: 200% 200%;\n    border-radius: 0;
     border: none;
     box-shadow: none;
 }
@@ -682,17 +629,6 @@ body {
     touch-action: none; /* Prevent default touch behaviors for better drawing */
     -webkit-user-select: none;
     user-select: none;
-}
-
-@keyframes canvasGlow {
-    0%, 100% { 
-        background-position: 0% 50%;
-        box-shadow: 0 8px 30px rgba(255, 105, 180, 0.3);
-    }
-    50% { 
-        background-position: 100% 50%;
-        box-shadow: 0 12px 40px rgba(255, 105, 180, 0.5);
-    }
 }
 
 /* Sticker Panel */
@@ -831,321 +767,6 @@ body {
     }
 }
 
-@keyframes flash {
-    0% {
-        opacity: 0;
-    }
-    50% {
-        opacity: 0.5;
-    }
-    100% {
-        opacity: 0;
-    }
-}
-
-@keyframes toolFeedback {
-    0% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.5);
-    }
-    20% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1.2);
-    }
-    80% {
-        opacity: 1;
-        transform: translate(-50%, -50%) scale(1);
-    }
-    100% {
-        opacity: 0;
-        transform: translate(-50%, -50%) scale(0.8);
-    }
-}
-
-/* Coloring Books Modal */
-.coloring-books-modal,
-.page-selection-modal {
-    display: none;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.8);
-    z-index: 3000;
-    justify-content: center;
-    align-items: center;
-}
-
-.coloring-books-modal.show,
-.page-selection-modal.show {
-    display: flex;
-}
-
-.modal-content {
-    background: linear-gradient(135deg, #FFE4E1, #E0FFFF, #F0E68C);
-    border-radius: 20px;
-    padding: 30px;
-    max-width: 80%;
-    max-height: 80%;
-    overflow-y: auto;
-    border: 5px solid #FF69B4;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-    position: relative;
-}
-
-.modal-close {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: #FF6B6B;
-    color: white;
-    border: none;
-    border-radius: 50%;
-    width: 48px; /* Increased from 40px for better touch target */
-    height: 48px;
-    font-size: 22px; /* Slightly larger */
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    touch-action: manipulation; /* Prevent double-tap zoom */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.modal-close:hover {
-    background: #FF5252;
-    transform: scale(1.1);
-}
-
-.modal-content h3 {
-    color: #FF1493;
-    font-size: 28px;
-    margin-bottom: 20px;
-    text-align: center;
-    font-family: 'Comic Sans MS', cursive;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.pdf-upload-btn {
-    background: linear-gradient(45deg, #4CAF50, #45a049);
-    color: white;
-    padding: 20px 30px;
-    border-radius: 15px;
-    cursor: pointer;
-    font-family: 'Comic Sans MS', cursive;
-    font-weight: bold;
-    font-size: 18px;
-    transition: all 0.3s ease;
-    display: inline-block;
-    box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
-    border: 3px solid #2E7D32;
-}
-
-.pdf-upload-btn:hover {
-    transform: translateY(-3px) scale(1.05);
-    box-shadow: 0 8px 25px rgba(76, 175, 80, 0.5);
-    background: linear-gradient(45deg, #66BB6A, #4CAF50);
-}
-
-.sample-pdfs {
-    border-top: 2px dashed #FF69B4;
-    padding-top: 20px;
-    margin-top: 20px;
-}
-
-.pdf-list,
-.page-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 15px;
-    margin-top: 20px;
-}
-
-.pdf-item,
-.page-item {
-    background: linear-gradient(45deg, #FFB6C1, #E6E6FA);
-    border: 3px solid #FF69B4;
-    border-radius: 15px;
-    padding: 20px;
-    cursor: pointer;
-    text-align: center;
-    font-family: 'Comic Sans MS', cursive;
-    font-weight: bold;
-    color: #FF1493;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 12px rgba(255, 105, 180, 0.3);
-}
-
-.pdf-item:hover,
-.page-item:hover {
-    transform: translateY(-5px) scale(1.05);
-    background: linear-gradient(45deg, #FFE4E1, #F0F8FF);
-    box-shadow: 0 8px 20px rgba(255, 105, 180, 0.5);
-}
-
-.page-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-}
-
-.page-thumbnail {
-    width: 100px;
-    height: 130px;
-    border: 2px solid #FF69B4;
-    border-radius: 8px;
-    background: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    color: #666;
-}
-
-/* PDF Overlay */
-.pdf-overlay {
-    display: none;
-    position: fixed;
-    top: 80px; /* below fixed toolbar */
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: #f0f0f0;
-    z-index: 4000;
-}
-
-.pdf-overlay.show {
-    display: block;
-}
-
-.pdf-controls {
-    position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 4001;
-    display: flex;
-    gap: 10px;
-    flex-wrap: wrap;
-    align-items: center;
-}
-
-.pdf-control-btn {
-    background: linear-gradient(45deg, #FF69B4, #FFB6C1);
-    color: white;
-    border: none;
-    border-radius: 10px;
-    padding: 12px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.3);
-    transition: all 0.3s ease;
-    font-family: 'Comic Sans MS', cursive;
-}
-
-.pdf-control-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(255, 105, 180, 0.4);
-}
-
-#pdfCanvas,
-#pdfDrawingCanvas {
-    position: absolute;
-    top: 60px;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 4000;
-    touch-action: none; /* Prevent default touch behaviors */
-}
-
-#pdfDrawingCanvas {
-    z-index: 4001;
-}
-
-/* Mobile Responsive */
-.coloring-panel {
-    position: absolute;
-    top: 20px;
-    left: -400px;
-    width: 380px;
-    height: calc(100% - 40px);
-    background: linear-gradient(135deg, #98FB98, #87CEEB, #DDA0DD, #F4A460);
-    background-size: 300% 300%;
-    animation: panelRainbow 6s ease infinite;
-    border-radius: 0 25px 25px 0;
-    padding: 20px;
-    transition: left 0.4s ease;
-    overflow-y: auto;
-    box-shadow: 8px 0 30px rgba(255, 105, 180, 0.4);
-    border: 5px solid #FF69B4;
-    z-index: 2000;
-}
-
-.coloring-panel.show {
-    left: 0;
-}
-
-.coloring-panel h3 {
-    color: white;
-    font-size: 28px;
-    margin-bottom: 25px;
-    text-align: center;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
-    animation: titleBounce 2s ease-in-out infinite;
-}
-
-.coloring-category {
-    background: rgba(255,255,255,0.95);
-    border-radius: 20px;
-    padding: 20px;
-    margin-bottom: 20px;
-    border: 3px solid #FFB6C1;
-    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
-    animation: categoryGlow 3s ease-in-out infinite;
-}
-
-.coloring-category h4 {
-    color: #8B008B;
-    font-size: 18px;
-    margin-bottom: 15px;
-    text-align: center;
-    font-weight: bold;
-    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
-}
-
-.coloring-page {
-    display: inline-block;
-    background: linear-gradient(45deg, #FFE4E6, #F0F8FF);
-    color: #8B008B;
-    padding: 12px 18px;
-    margin: 8px;
-    border-radius: 15px;
-    cursor: pointer;
-    font-size: 16px;
-    font-weight: bold;
-    border: 3px solid #FFB6C1;
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(255, 105, 180, 0.2);
-    text-shadow: 1px 1px 2px rgba(255,255,255,0.8);
-}
-
-.coloring-page:hover {
-    transform: translateY(-5px) scale(1.05) rotate(2deg);
-    border-color: #FF1493;
-    background: linear-gradient(45deg, #FFB6C1, #E6E6FA);
-    box-shadow: 0 8px 25px rgba(255, 105, 180, 0.4);
-    animation: coloringHover 0.6s ease;
-}
-
-@keyframes coloringHover {
-    0%, 100% { transform: translateY(-5px) scale(1.05) rotate(2deg); }
-    50% { transform: translateY(-8px) scale(1.1) rotate(-2deg); }
-}
-
 /* Mobile Responsive */
 @media (max-width: 768px) {
     body {
@@ -1249,8 +870,7 @@ body {
         /* Position and size set dynamically by JS */
     }
     
-    .sticker-panel,
-    .coloring-panel {
+    .sticker-panel {
         width: 100%;
         right: -100%;
         left: -100%;
@@ -1261,8 +881,7 @@ body {
         border-width: 3px;
     }
     
-    .sticker-panel.show,
-    .coloring-panel.show {
+    .sticker-panel.show {
         bottom: 0;
         right: 0;
         left: 0;
@@ -1275,26 +894,9 @@ body {
         border-radius: 12px;
     }
     
-    .sticker-category,
-    .coloring-category {
-        padding: 15px;
-        margin-bottom: 15px;
-        border-radius: 15px;
-        border-width: 2px;
-    }
-    
-    .sticker-category h4,
-    .coloring-category h4 {
+    .sticker-category {
         font-size: 16px;
         margin-bottom: 10px;
-    }
-    
-    .coloring-page {
-        padding: 8px 12px;
-        font-size: 14px;
-        margin: 5px;
-        border-radius: 12px;
-        border-width: 2px;
     }
     
     .panel-close {
@@ -1418,19 +1020,7 @@ body {
     .toolbar-scroll-hint {
         font-size: 12px;
         padding: 6px 12px;
-    }
-    
-    .brush-section {
-        min-width: auto;
-        padding: 6px 10px;
-    }
-    
-    .brush-section h4 {
-        font-size: 14px;
-        margin-bottom: 0;
-    }
-    
-    #brushSize {
+    }\n    \n    #brushSize {
         width: 50px;
         height: 5px;
         margin-bottom: 0;
@@ -1443,15 +1033,13 @@ body {
     
     /* Removed duplicate #drawingCanvas rules to avoid conflicts */
     
-    .sticker-panel,
-    .coloring-panel {
+    .sticker-panel {
         height: 75vh;
         padding: 15px;
         border-radius: 10px 10px 0 0;
     }
     
-    .sticker-panel h3,
-    .coloring-panel h3 {
+    .sticker-panel h3 {
         font-size: 22px;
         margin-bottom: 15px;
     }
@@ -1463,24 +1051,15 @@ body {
         border-radius: 8px;
     }
     
-    .sticker-category,
-    .coloring-category {
+    .sticker-category {
         padding: 10px;
         margin-bottom: 10px;
         border-radius: 12px;
     }
     
-    .sticker-category h4,
-    .coloring-category h4 {
+    .sticker-category h4 {
         font-size: 14px;
         margin-bottom: 8px;
-    }
-    
-    .coloring-page {
-        padding: 6px 10px;
-        font-size: 12px;
-        margin: 3px;
-        border-radius: 8px;
     }
     
     .panel-close {
@@ -1556,14 +1135,12 @@ body {
         padding: 3px;
     }
     
-    .sticker-panel,
-    .coloring-panel {
+    .sticker-panel {
         padding: 10px;
         height: 80vh;
     }
     
-    .sticker-panel h3,
-    .coloring-panel h3 {
+    .sticker-panel h3 {
         font-size: 18px;
         margin-bottom: 10px;
     }

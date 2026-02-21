@@ -4,7 +4,7 @@
     init(){
       this.log('init');
       // Hook simple buttons
-      ['undoBtn','clearBtn','saveBtn','startChallengeBtn','exportGifBtn'].forEach(id=>{
+      ['undoBtn','clearBtn','saveBtn','exportGifBtn'].forEach(id=>{
         const el = document.getElementById(id);
         if(el) el.addEventListener('click', ()=> this.log('click:'+id));
       });

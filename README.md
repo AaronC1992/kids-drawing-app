@@ -100,8 +100,10 @@ kids-drawing-app/
 ├── sw.js                   # Service Worker for offline support
 ├── offline.html            # Offline fallback page
 ├── modules/
-│   ├── persistence.js      # localStorage management
-│   └── ui.js               # UI helper functions
+│   ├── replay.js            # Drawing replay/playback
+│   ├── dailyUnlock.js       # Daily unlock rewards
+│   ├── analytics.js         # Usage analytics
+│   └── gifExport.js         # GIF export functionality
 ├── icon-192.png            # App icon (192x192)
 ├── icon-512.png            # App icon (512x512)
 └── README.md               # This file!
