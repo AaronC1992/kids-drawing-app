@@ -63,6 +63,9 @@
         this.centerX = 0;
         this.centerY = 0;
 
+        // Multi-touch support
+        this.activeTouches = new Map(); // touchId -> per-touch drawing state
+
         console.log('KidsDrawingApp initialized with tool:', this.currentTool);
 
     this.setupCanvas();
@@ -81,22 +84,13 @@
     }
 
     setupCanvas() {
-        // Increase delay for Android WebView to ensure DOM is fully rendered
-        const isAndroidWebView = navigator.userAgent.includes('wv') || navigator.userAgent.includes('Android');
-        const delay = isAndroidWebView ? 300 : 100;
-        
         setTimeout(() => {
             this.resizeCanvas();
             this.ctx.lineCap = 'round';
             this.ctx.lineJoin = 'round';
             this.ctx.fillStyle = 'white';
             this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
-            
-            // Force another resize after a moment to catch any late layout changes (Android WebView)
-            if (isAndroidWebView) {
-                setTimeout(() => this.resizeCanvas(), 500);
-            }
-        }, delay);
+        }, 100);
         
         window.addEventListener('resize', () => {
             this.resizeCanvas();
@@ -368,18 +362,13 @@
 
         this.canvas.addEventListener('touchstart', (e) => this.handleTouch(e));
         this.canvas.addEventListener('touchmove', (e) => this.handleTouch(e));
-        this.canvas.addEventListener('touchend', () => this.stopDrawing());
+        this.canvas.addEventListener('touchend', (e) => this.handleTouch(e));
+        this.canvas.addEventListener('touchcancel', (e) => this.handleTouch(e));
 
         // Magnifying glass tool
         const magnifierTool = document.getElementById('magnifierTool');
         if (magnifierTool) {
-            // Add both click and touch handlers for better Android WebView compatibility
             magnifierTool.addEventListener('click', () => {
-                this.toggleMagnifier();
-                this.closeAllCategories();
-            });
-            magnifierTool.addEventListener('touchend', (e) => {
-                e.preventDefault();
                 this.toggleMagnifier();
                 this.closeAllCategories();
             });
@@ -454,18 +443,322 @@
         }
     }
 
+    getTouchCanvasCoords(touch) {
+        const rect = this.canvas.getBoundingClientRect();
+        const scaleX = this.canvas.width / rect.width;
+        const scaleY = this.canvas.height / rect.height;
+        return {
+            x: (touch.clientX - rect.left) * scaleX,
+            y: (touch.clientY - rect.top) * scaleY
+        };
+    }
+
     handleTouch(e) {
         e.preventDefault();
-        const touch = e.touches[0];
-        const mouseEvent = new MouseEvent(e.type === 'touchstart' ? 'mousedown' : 'mousemove', {
-            clientX: touch.clientX,
-            clientY: touch.clientY
-        });
-        
+
         if (e.type === 'touchstart') {
-            this.startDrawing(mouseEvent);
+            for (const touch of e.changedTouches) {
+                const { x, y } = this.getTouchCanvasCoords(touch);
+
+                // First touch handles special modes (flags, decorations, stickers)
+                if (this.activeTouches.size === 0) {
+                    if (this.handleFlagClick(x, y)) continue;
+
+                    if (this.decorationMode) {
+                        this.addTrackDecoration(x, y, this.decorationMode);
+                        const decorationSelect = document.getElementById('decorationSelect');
+                        if (decorationSelect) decorationSelect.value = '';
+                        this.decorationMode = null;
+                        continue;
+                    }
+
+                    if (this.stickerMode && this.selectedSticker) {
+                        this.addStickerAt(this.selectedSticker, x, y);
+                        this.stickerMode = false;
+                        this.selectedSticker = null;
+                        this.canvas.style.cursor = 'crosshair';
+                        document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                        document.querySelector('[data-tool="brush"]').classList.add('active');
+                        this.currentTool = 'brush';
+                        continue;
+                    }
+                }
+
+                this.startDrawingForTouch(touch.identifier, x, y);
+            }
         } else if (e.type === 'touchmove') {
-            this.draw(mouseEvent);
+            for (const touch of e.changedTouches) {
+                if (!this.activeTouches.has(touch.identifier)) continue;
+                const { x, y } = this.getTouchCanvasCoords(touch);
+                this.drawForTouch(touch.identifier, x, y);
+            }
+        } else if (e.type === 'touchend' || e.type === 'touchcancel') {
+            for (const touch of e.changedTouches) {
+                this.stopDrawingForTouch(touch.identifier);
+            }
+        }
+    }
+
+    startDrawingForTouch(touchId, x, y) {
+        const touchState = {
+            lastPoint: { x, y },
+            neonWhitePoints: null,
+            currentWigglyLine: null,
+            currentTrack: [],
+            lastBlockX: null,
+            lastBlockY: null,
+            lastLeafTime: 0,
+            lastFlowerTime: 0,
+            lastGrassTime: 0
+        };
+        this.activeTouches.set(touchId, touchState);
+
+        // Replay recording for the first touch only
+        if (this.activeTouches.size === 1 && window.Replay && window.Replay.isRecording && !this.stickerMode && !this.decorationMode) {
+            window.Replay.startStroke({
+                tool: this.currentTool,
+                color: this.getCurrentColor(),
+                size: this.brushSize,
+                start: { x, y }
+            });
+        }
+
+        // Tool-specific initialisation (mirrors startDrawing logic)
+        const tool = this.currentTool;
+
+        if (tool === 'train-track') {
+            this.trainTracks = this.trainTracks || [];
+            this.trains = this.trains || [];
+            touchState.currentTrack = [];
+        }
+
+        if (tool === 'brush') {
+            this.ctx.globalCompositeOperation = 'source-over';
+            // Segment-by-segment drawing handles multi-touch; no beginPath needed here
+        } else if (tool === 'fireworks') {
+            this.drawFireworks(x, y);
+        } else if (tool === 'spray') {
+            this.drawSpray(x, y);
+        } else if (tool === 'fill') {
+            this.floodFill(x, y);
+        } else if (tool === 'neon') {
+            this.ctx.globalCompositeOperation = 'source-over';
+        } else if (tool === 'wobbly-crayon') {
+            this.ctx.globalCompositeOperation = 'source-over';
+        } else if (tool === 'smudge') {
+            // per-touch; nothing global to set
+        } else if (tool === 'blend') {
+            // per-touch; nothing global to set
+        } else if (tool === 'train-track') {
+            // Swap in touch state to draw first point
+            this._swapTouchState(touchState);
+            this.drawTrainTrack(x, y);
+            this._saveTouchState(touchState, x, y);
+            this._restoreTouchState();
+        } else if (tool === 'leaf-trail') {
+            this.ctx.globalCompositeOperation = 'source-over';
+        } else if (tool === 'flower-chain') {
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.flowers = this.flowers || [];
+        } else if (tool === 'grass-stamper') {
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.grassBlades = this.grassBlades || [];
+        } else if (tool === 'blocky-builder') {
+            this.ctx.globalCompositeOperation = 'source-over';
+            touchState.lastBlockX = null;
+            touchState.lastBlockY = null;
+            const blockSize = Math.max(4, this.brushSize * 0.8);
+            const gridX = Math.floor(x / blockSize) * blockSize;
+            const gridY = Math.floor(y / blockSize) * blockSize;
+            // Temporarily set shared state so drawSingleBlock works
+            this.blockSize = blockSize;
+            this.drawSingleBlock(gridX, gridY);
+            touchState.lastBlockX = gridX;
+            touchState.lastBlockY = gridY;
+        } else if (tool === 'mirror-painting') {
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.mirrorSections = 8;
+            this.centerX = this.canvas.width / 2;
+            this.centerY = this.canvas.height / 2;
+        } else if (tool === 'eraser') {
+            // swap in touch lastPoint for continuous erasing
+            this._swapTouchState(touchState);
+            this.drawEraser(x, y);
+            this._saveTouchState(touchState, x, y);
+            this._restoreTouchState();
+            return; // lastPoint already saved
+        }
+    }
+
+    // --- Context-swap helpers for multi-touch ---
+    _swapTouchState(touchState) {
+        this._saved = {
+            lastPoint: this.lastPoint,
+            neonWhitePoints: this.neonWhitePoints,
+            currentWigglyLine: this.currentWigglyLine,
+            currentTrack: this.currentTrack,
+            lastBlockX: this.lastBlockX,
+            lastBlockY: this.lastBlockY,
+            lastLeafTime: this.lastLeafTime,
+            lastFlowerTime: this.lastFlowerTime,
+            lastGrassTime: this.lastGrassTime,
+            isDrawing: this.isDrawing
+        };
+        this.lastPoint = touchState.lastPoint;
+        this.neonWhitePoints = touchState.neonWhitePoints;
+        this.currentWigglyLine = touchState.currentWigglyLine;
+        this.currentTrack = touchState.currentTrack;
+        this.lastBlockX = touchState.lastBlockX;
+        this.lastBlockY = touchState.lastBlockY;
+        this.lastLeafTime = touchState.lastLeafTime;
+        this.lastFlowerTime = touchState.lastFlowerTime;
+        this.lastGrassTime = touchState.lastGrassTime;
+        this.isDrawing = true;
+    }
+
+    _saveTouchState(touchState, x, y) {
+        touchState.lastPoint = { x, y };
+        touchState.neonWhitePoints = this.neonWhitePoints;
+        touchState.currentWigglyLine = this.currentWigglyLine;
+        touchState.currentTrack = this.currentTrack;
+        touchState.lastBlockX = this.lastBlockX;
+        touchState.lastBlockY = this.lastBlockY;
+        touchState.lastLeafTime = this.lastLeafTime;
+        touchState.lastFlowerTime = this.lastFlowerTime;
+        touchState.lastGrassTime = this.lastGrassTime;
+    }
+
+    _restoreTouchState() {
+        if (!this._saved) return;
+        this.lastPoint = this._saved.lastPoint;
+        this.neonWhitePoints = this._saved.neonWhitePoints;
+        this.currentWigglyLine = this._saved.currentWigglyLine;
+        this.currentTrack = this._saved.currentTrack;
+        this.lastBlockX = this._saved.lastBlockX;
+        this.lastBlockY = this._saved.lastBlockY;
+        this.lastLeafTime = this._saved.lastLeafTime;
+        this.lastFlowerTime = this._saved.lastFlowerTime;
+        this.lastGrassTime = this._saved.lastGrassTime;
+        this.isDrawing = this._saved.isDrawing;
+        this._saved = null;
+    }
+
+    drawForTouch(touchId, x, y) {
+        const touchState = this.activeTouches.get(touchId);
+        if (!touchState) return;
+
+        // Swap shared state to this touch's state
+        this._swapTouchState(touchState);
+
+        const tool = this.currentTool;
+
+        if (tool === 'brush') {
+            this.ctx.globalCompositeOperation = 'source-over';
+            this.ctx.strokeStyle = this.getCurrentColor();
+            this.ctx.lineWidth = this.brushSize;
+            this.ctx.lineCap = 'round';
+            this.ctx.lineJoin = 'round';
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.lastPoint.x, this.lastPoint.y);
+            this.ctx.lineTo(x, y);
+            this.ctx.stroke();
+        } else if (tool === 'eraser') {
+            this.drawEraser(x, y);
+        } else if (tool === 'fireworks') {
+            this.drawFireworks(x, y);
+        } else if (tool === 'spray') {
+            this.drawSpray(x, y);
+        } else if (tool === 'glitter') {
+            this.drawGlitter(x, y);
+        } else if (tool === 'neon') {
+            this.drawNeon(x, y);
+        } else if (tool === 'bubble') {
+            this.drawBubbles(x, y);
+        } else if (tool === 'confetti') {
+            this.drawConfetti(x, y);
+        } else if (tool === 'sparkles') {
+            this.drawColorfulWorms(x, y);
+        } else if (tool === 'lightning') {
+            this.drawLightning(x, y);
+        } else if (tool === 'bugs') {
+            this.drawBugs(x, y);
+        } else if (tool === 'streamers') {
+            this.drawStreamers(x, y);
+        } else if (tool === 'wobbly-crayon') {
+            this.drawWobblyCrayon(x, y);
+        } else if (tool === 'smudge') {
+            this.drawSmudge(x, y);
+        } else if (tool === 'blend') {
+            this.drawBlend(x, y);
+        } else if (tool === 'train-track') {
+            this.drawTrainTrack(x, y);
+        } else if (tool === 'leaf-trail') {
+            this.drawLeafTrail(x, y);
+        } else if (tool === 'flower-chain') {
+            this.drawFlowerChain(x, y);
+        } else if (tool === 'grass-stamper') {
+            this.drawGrassStamper(x, y);
+        } else if (tool === 'blocky-builder') {
+            this.drawBlockyBuilder(x, y);
+        } else if (tool === 'mirror-painting') {
+            this.drawMirrorPainting(x, y);
+        }
+
+        // Record replay point for first touch
+        if (this.activeTouches.size >= 1 && [...this.activeTouches.keys()][0] === touchId) {
+            if (window.Replay && window.Replay.isRecording && window.Replay.currentStroke) {
+                window.Replay.addPoint(x, y);
+            }
+        }
+
+        // Save touch state back and restore shared state
+        this._saveTouchState(touchState, x, y);
+        this._restoreTouchState();
+    }
+
+    stopDrawingForTouch(touchId) {
+        const touchState = this.activeTouches.get(touchId);
+        if (!touchState) return;
+
+        // Swap in this touch's state so finalization code works
+        this._swapTouchState(touchState);
+
+        // Finalize wiggly crayon line
+        if (this.currentTool === 'wobbly-crayon' && this.currentWigglyLine) {
+            this.wigglyLines.push(this.currentWigglyLine);
+            this.currentWigglyLine = null;
+            this.updateStaticCanvas();
+        }
+
+        // Finalize train track and create a train
+        if (this.currentTool === 'train-track' && this.currentTrack && this.currentTrack.length > 1) {
+            // Temporarily set currentTrack for merge helper
+            const merged = this.mergeTracksIfConnected();
+            if (!merged) {
+                this.trainTracks.push(this.currentTrack);
+                const trackIndex = this.trainTracks.length - 1;
+                this.createTrainForTrack(this.currentTrack, trackIndex);
+            }
+            this.currentTrack = [];
+        }
+
+        // Reset neon white points (already per-touch, just null out)
+        this.neonWhitePoints = null;
+        this.lastBlockX = null;
+        this.lastBlockY = null;
+
+        // Restore shared state (don't persist the nulled values back)
+        this._restoreTouchState();
+
+        // Remove touch from active set
+        this.activeTouches.delete(touchId);
+
+        // Only save undo state & end replay when the last finger lifts
+        if (this.activeTouches.size === 0) {
+            this.saveState();
+            if (window.Replay && window.Replay.isRecording) {
+                window.Replay.endStroke();
+            }
         }
     }
 
@@ -618,18 +911,15 @@
         const y = (e.clientY - rect.top) * scaleY;
 
         if (this.currentTool === 'brush') {
-            if (this.isRainbowMode) {
-                // For rainbow mode, draw individual segments
-                this.ctx.strokeStyle = this.getCurrentColor();
-                this.ctx.beginPath();
-                this.ctx.moveTo(this.lastPoint.x, this.lastPoint.y);
-                this.ctx.lineTo(x, y);
-                this.ctx.stroke();
-            } else {
-                // Normal brush behavior
-                this.ctx.lineTo(x, y);
-                this.ctx.stroke();
-            }
+            // Segment-by-segment drawing (supports both single and multi-touch)
+            this.ctx.strokeStyle = this.getCurrentColor();
+            this.ctx.lineWidth = this.brushSize;
+            this.ctx.lineCap = 'round';
+            this.ctx.lineJoin = 'round';
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.lastPoint.x, this.lastPoint.y);
+            this.ctx.lineTo(x, y);
+            this.ctx.stroke();
         } else if (this.currentTool === 'eraser') {
             this.drawEraser(x, y);
         } else if (this.currentTool === 'fireworks') {
@@ -1772,16 +2062,15 @@
         if (!this.isDrawing) return;
 
         if (this.currentTool === 'brush') {
-            if (this.isRainbowMode) {
-                this.ctx.strokeStyle = this.getCurrentColor();
-                this.ctx.beginPath();
-                this.ctx.moveTo(this.lastPoint.x, this.lastPoint.y);
-                this.ctx.lineTo(x, y);
-                this.ctx.stroke();
-            } else {
-                this.ctx.lineTo(x, y);
-                this.ctx.stroke();
-            }
+            // Segment-by-segment drawing (consistent with main draw path)
+            this.ctx.strokeStyle = this.getCurrentColor();
+            this.ctx.lineWidth = this.brushSize;
+            this.ctx.lineCap = 'round';
+            this.ctx.lineJoin = 'round';
+            this.ctx.beginPath();
+            this.ctx.moveTo(this.lastPoint.x, this.lastPoint.y);
+            this.ctx.lineTo(x, y);
+            this.ctx.stroke();
         } else if (this.currentTool === 'eraser') {
             this.drawEraser(x, y);
         } else if (this.currentTool === 'fireworks') {
@@ -2688,7 +2977,8 @@
     }
     
     animateWigglyLines() {
-        if (this.wigglyLines.length === 0 && !this.currentWigglyLine) {
+        const hasActiveWigglyTouches = [...this.activeTouches.values()].some(ts => ts.currentWigglyLine);
+        if (this.wigglyLines.length === 0 && !this.currentWigglyLine && !hasActiveWigglyTouches) {
             this.animationRunning = false;
             return;
         }
@@ -2713,9 +3003,16 @@
             this.drawWigglyLine(line, currentTime, overlayCtx);
         });
         
-        // Draw current line being drawn
+        // Draw current line being drawn (mouse)
         if (this.currentWigglyLine && this.currentWigglyLine.points.length > 0) {
             this.drawWigglyLine(this.currentWigglyLine, currentTime, overlayCtx);
+        }
+
+        // Draw current wiggly lines from all active touches
+        for (const [, touchState] of this.activeTouches) {
+            if (touchState.currentWigglyLine && touchState.currentWigglyLine.points.length > 0) {
+                this.drawWigglyLine(touchState.currentWigglyLine, currentTime, overlayCtx);
+            }
         }
         
         // Continue animation
@@ -2746,6 +3043,19 @@
                 this.currentWigglyLine.lastBounds.maxX - this.currentWigglyLine.lastBounds.minX + (padding * 2), 
                 this.currentWigglyLine.lastBounds.maxY - this.currentWigglyLine.lastBounds.minY + (padding * 2)
             );
+        }
+
+        // Clear wiggly areas from active touch wiggly lines
+        for (const [, touchState] of this.activeTouches) {
+            if (touchState.currentWigglyLine && touchState.currentWigglyLine.lastBounds) {
+                const padding = Math.max(20, touchState.currentWigglyLine.brushSize + 10);
+                overlayCtx.clearRect(
+                    touchState.currentWigglyLine.lastBounds.minX - padding, 
+                    touchState.currentWigglyLine.lastBounds.minY - padding, 
+                    touchState.currentWigglyLine.lastBounds.maxX - touchState.currentWigglyLine.lastBounds.minX + (padding * 2), 
+                    touchState.currentWigglyLine.lastBounds.maxY - touchState.currentWigglyLine.lastBounds.minY + (padding * 2)
+                );
+            }
         }
     }
     
@@ -4911,45 +5221,6 @@ function toggleCategory(categoryId) {
 }
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Show version popup on startup
-    const versionPopup = document.createElement('div');
-    versionPopup.style.cssText = `
-        position: fixed;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        background: linear-gradient(135deg, #FFB6C1, #E6E6FA);
-        border: 5px solid #FF69B4;
-        border-radius: 25px;
-        padding: 30px;
-        z-index: 99999;
-        text-align: center;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-        font-family: 'Comic Sans MS', Arial, sans-serif;
-    `;
-    versionPopup.innerHTML = `
-        <h2 style="color: #8B008B; font-size: 28px; margin-bottom: 15px; text-shadow: 2px 2px 4px rgba(255,255,255,0.8);">🎨 Kids Drawing App 🎨</h2>
-        <p style="color: #FF1493; font-size: 24px; font-weight: bold; margin: 10px 0;">Version 1.1.4.6</p>
-        <p style="color: #8B008B; font-size: 16px; margin: 15px 0;">Ready to draw!</p>
-        <button id="versionOkBtn" style="
-            background: linear-gradient(45deg, #FF69B4, #FF1493);
-            color: white;
-            border: none;
-            border-radius: 15px;
-            padding: 12px 30px;
-            font-size: 18px;
-            font-weight: bold;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-            margin-top: 10px;
-        ">Let's Draw! 🖌️</button>
-    `;
-    document.body.appendChild(versionPopup);
-    
-    document.getElementById('versionOkBtn').addEventListener('click', () => {
-        versionPopup.remove();
-    });
-    
     const app = new KidsDrawingApp();
     window.appInstance = app;
     if (window.DailyUnlock) window.DailyUnlock.init();
