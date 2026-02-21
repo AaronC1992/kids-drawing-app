@@ -185,6 +185,22 @@ npx http-server -p 8000
 
 **Notes:** Critical fix - v1.1.4.1 had landscape CSS in wrong breakpoint so changes didn't apply.
 
+### Version 1.1.4.3 (Multi-Touch Drawing)
+**New:**
+- Multi-touch support — draw with multiple fingers simultaneously
+- Each finger independently maintains its own tool state and position
+- Works with all drawing tools and effects
+
+### Version 1.1.4.5 (Codebase Cleanup)
+**Improvements:**
+- Removed ~1,400 lines of dead code across app.js, styles.css, and config files
+- Removed unused PDF/coloring book stubs, duplicate methods, and never-called functions
+- Cleaned up CSS: removed dead keyframes, selectors, and media query rules
+- Fixed corrupted dropdown arrow icons appearing as "?" after clicking
+- Updated service worker cache and module references
+
+**Notes:** No feature changes — internal cleanup only. The Android APK (v1.1.4.2) is a TWA wrapper that automatically loads the latest web app, so it always reflects the newest version.
+
 ## 🎯 Roadmap / Future Features
 
 - [ ] Settings modal for advanced options
